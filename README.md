@@ -27,14 +27,43 @@ Measured on a 4665-image Unity asset library: indexing 196 s, one search 12.5 s
 
 ## Building
 
-Qt 6.5+ (Core, Gui, Sql, Widgets) and CMake 3.21. The neural backend is optional
-and off by default.
+One script per platform. Both locate the compiler and Qt themselves, and
+**download any missing dependency** before configuring.
 
 ```bash
-cmake --preset msvc-release && cmake --build --preset msvc-release
+tools\build.bat
 ```
 
-With the neural backend:
+```bash
+tools/build.sh
+```
+
+| argument | effect |
+|---|---|
+| *(none)* | release build with the neural backend |
+| `debug` | debug build |
+| `package` | build, then assemble the self-contained `dist/` |
+| `clean` | rebuild from scratch |
+| `no-inference` | skip ONNX Runtime and OpenCV; duplicate finding still works |
+
+Override discovery with `QTDIR` / `QT_PREFIX`, `ORT_ROOT` or `OPENCV_DIR`.
+
+To fetch dependencies without building, run `tools\fetch-deps.ps1` or
+`tools/fetch-deps.sh` directly.
+
+On Linux and macOS, Qt and OpenCV come from the system package manager: the
+script checks for them and prints the single command that installs them, rather
+than claiming root for itself. Everything else — ONNX Runtime, the CUDA runtime
+and cuDNN where a card is present, the model weights — lands in `third_party/`,
+`~/imageworker-deps` and `models/`, none of which are in the repository.
+
+After a Unix build, `source ~/imageworker-deps/env.sh` before running the
+binaries, so the runtime libraries are found.
+
+### By hand
+
+Qt 6.4+ (Core, Gui, Sql, Widgets) and CMake 3.21. The neural backend is optional
+and off by default.
 
 ```bash
 cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON && cmake --build --preset msvc-release

@@ -1,0 +1,22 @@
+# Batch files are parsed line by line by cmd.exe, which requires CRLF. With LF
+# endings it executes the comments as commands, which fails in a way that points
+# nowhere near the real cause.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Shell scripts must keep LF even when checked out on Windows, or the shebang
+# line carries a stray carriage return and the interpreter is "not found".
+*.sh  text eol=lf
+
+# Everything else: normalise in the repository, native on checkout.
+*.cpp  text
+*.h    text
+*.txt  text
+*.md   text
+*.json text
+*.ui   text
+*.ps1  text
+
+# Never touched by line-ending conversion.
+*.png  binary
+*.onnx binary
