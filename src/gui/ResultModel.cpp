@@ -143,7 +143,7 @@ QVariant ResultModel::data(const QModelIndex &index, int role) const
                     .arg(entry.row.height)
                     .arg(QLocale::system().formattedDataSize(entry.row.size));
         if (entry.distance >= 0)
-            text += QStringLiteral("\ndistance %1").arg(entry.distance);
+            text += QLatin1Char('\n') + tr("distance %1").arg(entry.distance);
         return text;
     }
 

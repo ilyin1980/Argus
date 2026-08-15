@@ -11,6 +11,7 @@
 #include <QCommandLineParser>
 #include <QSettings>
 
+#include "Localization.h"
 #include "MainWindow.h"
 #include "Theme.h"
 
@@ -20,6 +21,10 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName(QStringLiteral("ImageWorker"));
     QCoreApplication::setOrganizationName(QStringLiteral("ImageWorker"));
     QCoreApplication::setApplicationVersion(QStringLiteral(IMAGEWORKER_VERSION));
+
+    // Before the parser, so even --help comes out in the user's language, and
+    // before any window exists, so nothing is ever seen in the wrong one.
+    i18n::install(app, i18n::savedCode());
 
     // Applied before the first window exists, so nothing is ever seen unstyled.
     theme::apply(app, theme::fromKey(

@@ -2,6 +2,7 @@
 #include "ui_MainWindow.h"
 
 #include "IndexController.h"
+#include "Localization.h"
 #include "QueryImageView.h"
 #include "ResultModel.h"
 #include "Theme.h"
@@ -32,6 +33,7 @@
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHBoxLayout>
+#include <QHash>
 #include <QImageReader>
 #include <QKeyEvent>
 #include <QLabel>
@@ -71,6 +73,32 @@ QString humanBytes(qint64 bytes)
     return QLocale::system().formattedDataSize(bytes, 2, QLocale::DataSizeIecFormat);
 }
 
+/**
+ * @brief Turn a core progress stage into a word the user can read.
+ * @param stage Stable identifier emitted by the core: scan, index, features…
+ * @return Translated label, or the identifier itself when it is unknown.
+ *
+ * The core deals in identifiers and knows nothing about languages; the window
+ * is the only place that should be putting words in front of anyone.
+ */
+QString stageLabel(const QString &stage)
+{
+    static const QHash<QString, const char *> known = {
+        { QStringLiteral("scan"),     QT_TRANSLATE_NOOP("stage", "scanning")    },
+        { QStringLiteral("index"),    QT_TRANSLATE_NOOP("stage", "indexing")    },
+        { QStringLiteral("features"), QT_TRANSLATE_NOOP("stage", "descriptors") },
+        { QStringLiteral("prune"),    QT_TRANSLATE_NOOP("stage", "pruning")     },
+        { QStringLiteral("load"),     QT_TRANSLATE_NOOP("stage", "loading")     },
+        { QStringLiteral("match"),    QT_TRANSLATE_NOOP("stage", "matching")    },
+        { QStringLiteral("collect"),  QT_TRANSLATE_NOOP("stage", "collecting")  },
+        { QStringLiteral("verify"),   QT_TRANSLATE_NOOP("stage", "verifying")   },
+    };
+    const auto it = known.constFind(stage);
+    if (it == known.constEnd())
+        return stage;
+    return QCoreApplication::translate("stage", *it);
+}
+
 /** @brief Whether the clipboard currently holds pixels rather than text. */
 bool clipboardHasImage()
 {
@@ -94,12 +122,12 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_statusLabel = new QLabel(this);
     statusBar()->addWidget(m_statusLabel);
-    setStatus(QStringLiteral("Choose a folder to begin."));
+    setStatus(tr("Choose a folder to begin."));
 
     // Window-level paste. A shortcut on the Paste button alone is dead whenever
     // the query tab is not the visible page, because Qt disables shortcuts of
     // hidden widgets — which is exactly the case while browsing duplicates.
-    auto *pasteAction = new QAction(QStringLiteral("Paste screenshot"), this);
+    auto *pasteAction = new QAction(tr("Paste screenshot"), this);
     pasteAction->setShortcut(QKeySequence::Paste);
     pasteAction->setShortcutContext(Qt::WindowShortcut);
     connect(pasteAction, &QAction::triggered, this, [this] {
@@ -128,7 +156,7 @@ MainWindow::MainWindow(QWidget *parent)
                 } else {
                     m_progress->setRange(0, 0);
                 }
-                m_progress->setFormat(QStringLiteral("%1  %p%").arg(stage));
+                m_progress->setFormat(QStringLiteral("%1  %p%").arg(stageLabel(stage)));
             });
 }
 
@@ -199,12 +227,12 @@ void MainWindow::wireForm()
     // ---- query --------------------------------------------------------------
     connect(m_queryImage, &QueryImageView::selectionChanged, this, [this] {
         if (!m_queryImage->hasSelection()) {
-            m_queryHint->setText(QStringLiteral("Searching the whole image. "
+            m_queryHint->setText(tr("Searching the whole image. "
                                                 "Drag a box to search for one object."));
             return;
         }
         const QSize s = m_queryImage->effectiveImage().size();
-        m_queryHint->setText(QStringLiteral("Searching the selected %1 x %2 region — "
+        m_queryHint->setText(tr("Searching the selected %1 x %2 region — "
                                             "faster and more accurate than the whole frame.")
                                  .arg(s.width())
                                  .arg(s.height()));
@@ -214,21 +242,21 @@ void MainWindow::wireForm()
             [this] { setQueryImage(m_queryEdit->text()); });
     connect(ui->browseQueryButton, &QPushButton::clicked, this, &MainWindow::chooseQueryImage);
     connect(ui->pasteButton, &QPushButton::clicked, this, &MainWindow::pasteQueryImage);
-    ui->pasteButton->setToolTip(QStringLiteral("Paste a screenshot from the clipboard (Ctrl+V)"));
+    ui->pasteButton->setToolTip(tr("Paste a screenshot from the clipboard (Ctrl+V)"));
 
     // Populated here rather than in the form: the entries carry per-item tooltips
     // and one of them gets disabled depending on what the open index contains.
-    m_methodCombo->addItem(QStringLiteral("Locate object in the image"));
-    m_methodCombo->addItem(QStringLiteral("Whole-image similarity"));
+    m_methodCombo->addItem(tr("Locate object in the image"));
+    m_methodCombo->addItem(tr("Whole-image similarity"));
     m_methodCombo->setItemData(
         0,
-        QStringLiteral("Neural local features: finds an asset that is physically present in the\n"
+        tr("Neural local features: finds an asset that is physically present in the\n"
                        "image, even small, rescaled or surrounded by clutter, and shows where.\n"
                        "Needs an index built with descriptors and a trained vocabulary."),
         Qt::ToolTipRole);
     m_methodCombo->setItemData(
         1,
-        QStringLiteral("Perceptual hash: compares the picture as a whole.\n"
+        tr("Perceptual hash: compares the picture as a whole.\n"
                        "Good for rescaled or re-encoded copies of the same picture,\n"
                        "useless for finding a small object inside a screenshot."),
         Qt::ToolTipRole);
@@ -249,28 +277,40 @@ void MainWindow::wireForm()
     connect(m_copyButton, &QPushButton::clicked, this, [this] { copySelectedPaths(true); });
     connect(m_tabs, &QTabWidget::currentChanged, this, [this] { updatePathBar(); });
 
-    buildThemeMenu();
+    buildMenus();
+}
+
+void MainWindow::buildMenus()
+{
+    // Rebuilt wholesale rather than walked and re-titled: the Language menu's
+    // entries, the Theme menu's entries and their check marks all have to end
+    // up consistent, and rebuilding cannot leave one of them behind.
+    menuBar()->clear();
+
+    QMenu *view = menuBar()->addMenu(tr("&View"));
+    buildThemeMenu(view->addMenu(tr("&Theme")));
+    buildLanguageMenu(view->addMenu(tr("&Language")));
     buildHelpMenu();
 }
 
 void MainWindow::buildHelpMenu()
 {
-    QMenu *help = menuBar()->addMenu(QStringLiteral("&Help"));
+    QMenu *help = menuBar()->addMenu(tr("&Help"));
 
-    QAction *guide = help->addAction(QStringLiteral("&User guide"));
+    QAction *guide = help->addAction(tr("&User guide"));
     guide->setShortcut(QKeySequence::HelpContents); // F1
     connect(guide, &QAction::triggered, this,
             [this] { openHelp(HelpDialog::Page::UserGuide); });
 
-    QAction *cli = help->addAction(QStringLiteral("&Command line and automation"));
+    QAction *cli = help->addAction(tr("&Command line and automation"));
     connect(cli, &QAction::triggered, this,
             [this] { openHelp(HelpDialog::Page::CommandLine); });
 
     help->addSeparator();
-    help->addAction(QStringLiteral("&About"), this, [this] {
+    help->addAction(tr("&About"), this, [this] {
         QMessageBox::about(
-            this, QStringLiteral("About ImageWorker"),
-            QStringLiteral(
+            this, tr("About ImageWorker"),
+            tr(
                 "<h3>ImageWorker %1</h3>"
                 "<p>Finds which image assets appear inside a screenshot, and where; "
                 "and groups duplicates in a folder.</p>"
@@ -289,12 +329,9 @@ void MainWindow::openHelp(HelpDialog::Page page)
     m_help->showPage(page);
 }
 
-void MainWindow::buildThemeMenu()
+void MainWindow::buildThemeMenu(QMenu *themes)
 {
-    QMenu *view = menuBar()->addMenu(QStringLiteral("&View"));
-    QMenu *themes = view->addMenu(QStringLiteral("&Theme"));
-
-    auto *group = new QActionGroup(this);
+    auto *group = new QActionGroup(themes);
     group->setExclusive(true);
 
     QSettings settings;
@@ -314,12 +351,91 @@ void MainWindow::buildThemeMenu()
             // from a pixmap cache that is theme-independent, but the pulse and
             // the sweep read colours at paint time.
             update();
-            setStatus(QStringLiteral("Theme: %1").arg(theme::name(id)));
+            setStatus(tr("Theme: %1").arg(theme::name(id)));
         });
     }
 
     if (saved != theme::current())
         theme::apply(*qApp, saved);
+}
+
+void MainWindow::buildLanguageMenu(QMenu *languages)
+{
+    auto *group = new QActionGroup(languages);
+    group->setExclusive(true);
+
+    const QString saved = i18n::savedCode();
+
+    for (const i18n::Language &language : i18n::available()) {
+        // The system entry is the only one whose name belongs in the user's
+        // current language rather than in the language it selects.
+        const QString label = language.code.isEmpty()
+                                  ? tr("System language")
+                                  : language.endonym;
+        QAction *action = languages->addAction(label);
+        action->setCheckable(true);
+        action->setChecked(language.code == saved);
+        group->addAction(action);
+
+        const QString code = language.code;
+        connect(action, &QAction::triggered, this, [this, code, label] {
+            if (!i18n::install(*qApp, code)) {
+                // Saying so beats a menu tick that changes nothing.
+                setStatus(tr("No translation for %1 in this build.").arg(label));
+                return;
+            }
+            setStatus(tr("Language: %1").arg(label));
+        });
+
+        if (language.code.isEmpty())
+            languages->addSeparator();
+    }
+}
+
+void MainWindow::retranslateDynamic()
+{
+    // Everything the form file owns. This also puts the form's own window title
+    // back, which is the bare product name — the version has to be re-applied.
+    ui->retranslateUi(this);
+    setWindowTitle(QStringLiteral("ImageWorker %1").arg(QLatin1String(IMAGEWORKER_VERSION)));
+
+    // Everything built in code. The menu bar is thrown away and rebuilt; the
+    // rest is set back item by item, because these widgets outlive the language.
+    buildMenus();
+
+    ui->pasteButton->setToolTip(tr("Paste a screenshot from the clipboard (Ctrl+V)"));
+
+    m_methodCombo->setItemText(0, tr("Locate object in the image"));
+    m_methodCombo->setItemText(1, tr("Whole-image similarity"));
+    m_methodCombo->setItemData(
+        0,
+        tr("Neural local features: finds an asset that is physically present in the\n"
+           "image, even small, rescaled or surrounded by clutter, and shows where.\n"
+           "Needs an index built with descriptors and a trained vocabulary."),
+        Qt::ToolTipRole);
+    m_methodCombo->setItemData(
+        1,
+        tr("Perceptual hash: compares the picture as a whole.\n"
+           "Good for rescaled or re-encoded copies of the same picture,\n"
+           "useless for finding a small object inside a screenshot."),
+        Qt::ToolTipRole);
+
+    if (m_queryImage->effectiveImage().isNull())
+        m_queryHint->setText(tr("No reference image yet."));
+    else if (!m_queryImage->hasSelection())
+        m_queryHint->setText(tr("Searching the whole image. "
+                                "Drag a box to search for one object."));
+
+    // Deliberately not re-run: the status line and the result grids report on
+    // something that already happened, and re-deriving those sentences would
+    // mean re-running the search that produced them.
+}
+
+void MainWindow::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange)
+        retranslateDynamic();
+    QMainWindow::changeEvent(event);
 }
 
 void MainWindow::configureResultView(QListView *view, ResultModel *model)
@@ -348,7 +464,7 @@ void MainWindow::configureResultView(QListView *view, ResultModel *model)
         if (path.isEmpty())
             return;
         QApplication::clipboard()->setText(path);
-        setStatus(QStringLiteral("Copied %1").arg(path));
+        setStatus(tr("Copied %1").arg(path));
     });
 
     connect(view, &QListView::doubleClicked, this, &MainWindow::openSelected);
@@ -378,7 +494,7 @@ void MainWindow::updatePathBar()
     m_pathEdit->setText(selected.first().data(ResultModel::AbsolutePathRole).toString());
     m_pathEdit->setCursorPosition(0);
     m_pathCount->setText(selected.size() > 1
-                             ? QStringLiteral("+%1 more").arg(selected.size() - 1)
+                             ? tr("+%n more", "", selected.size() - 1)
                              : QString());
     m_copyButton->setEnabled(true);
 }
@@ -402,10 +518,10 @@ void MainWindow::copySelectedPaths(bool absolute)
         paths << index.data(role).toString();
 
     QApplication::clipboard()->setText(paths.join(QLatin1Char('\n')));
-    setStatus(QStringLiteral("Copied %1 %2 path%3 to the clipboard.")
-                  .arg(paths.size())
-                  .arg(absolute ? QStringLiteral("full") : QStringLiteral("relative"))
-                  .arg(paths.size() == 1 ? QString() : QStringLiteral("s")));
+    // Two whole sentences rather than one with the words slotted in: "full" and
+    // "relative" decline with the noun in most languages this ships in.
+    setStatus(absolute ? tr("Copied %n full path(s) to the clipboard.", "", paths.size())
+                       : tr("Copied %n relative path(s) to the clipboard.", "", paths.size()));
 }
 
 QString MainWindow::automaticStorageDir() const
@@ -434,7 +550,7 @@ void MainWindow::chooseStorage()
 {
     const QString start = m_storageEdit->text().isEmpty() ? m_root : m_storageEdit->text();
     const QString dir = QFileDialog::getExistingDirectory(
-        this, QStringLiteral("Choose where to keep the index"), start);
+        this, tr("Choose where to keep the index"), start);
     if (dir.isEmpty())
         return;
 
@@ -465,7 +581,7 @@ void MainWindow::setStorageDir(const QString &dir)
 void MainWindow::chooseRoot()
 {
     const QString dir = QFileDialog::getExistingDirectory(
-        this, QStringLiteral("Choose a folder"), m_rootEdit->text());
+        this, tr("Choose a folder"), m_rootEdit->text());
     if (!dir.isEmpty())
         setRoot(dir);
 }
@@ -486,18 +602,18 @@ void MainWindow::openDatabaseForRoot()
     m_groups.clear();
 
     if (m_root.isEmpty() || !QFileInfo(m_root).isDir()) {
-        setStatus(QStringLiteral("Choose a folder to begin."));
+        setStatus(tr("Choose a folder to begin."));
         return;
     }
 
     m_dbPath = currentDatabasePath();
     if (m_dbPath.isEmpty()) {
-        setStatus(QStringLiteral("Choose where the index should be kept."));
+        setStatus(tr("Choose where the index should be kept."));
         return;
     }
 
     if (!QFileInfo::exists(m_dbPath)) {
-        setStatus(QStringLiteral("No index at %1 — press Index to build one.")
+        setStatus(tr("No index at %1 — press Index to build one.")
                       .arg(QDir::toNativeSeparators(m_dbPath)));
         return;
     }
@@ -505,7 +621,7 @@ void MainWindow::openDatabaseForRoot()
     QString error;
     auto database = std::make_unique<iw::Database>();
     if (!database->open(m_dbPath, &error)) {
-        setStatus(QStringLiteral("Cannot open index: %1").arg(error));
+        setStatus(tr("Cannot open index: %1").arg(error));
         return;
     }
     m_database = std::move(database);
@@ -516,12 +632,12 @@ void MainWindow::openDatabaseForRoot()
     refreshMethodAvailability();
 
     const iw::DatabaseSummary summary = m_database->summary();
-    setStatus(QStringLiteral("%1 indexed files, %2%3")
+    setStatus(tr("%1 indexed files, %2%3")
                   .arg(summary.files)
                   .arg(humanBytes(summary.totalBytes))
                   .arg(neuralSearchAvailable()
                            ? QString()
-                           : QStringLiteral(" — no descriptors, object location unavailable")));
+                           : tr(" — no descriptors, object location unavailable")));
 }
 
 // ---------------------------------------------------------------------------
@@ -535,7 +651,7 @@ void MainWindow::startIndexing()
 
     m_root = iw::normalizeRoot(m_rootEdit->text());
     if (m_root.isEmpty() || !QFileInfo(m_root).isDir()) {
-        QMessageBox::warning(this, windowTitle(), QStringLiteral("Choose an existing folder first."));
+        QMessageBox::warning(this, windowTitle(), tr("Choose an existing folder first."));
         return;
     }
 
@@ -548,7 +664,7 @@ void MainWindow::startIndexing()
     const QString storageDir = QDir::fromNativeSeparators(m_storageEdit->text().trimmed());
     if (storageDir.isEmpty() || !QDir().mkpath(storageDir)) {
         QMessageBox::warning(this, windowTitle(),
-                             QStringLiteral("Cannot create the index directory:\n%1")
+                             tr("Cannot create the index directory:\n%1")
                                  .arg(QDir::toNativeSeparators(storageDir)));
         return;
     }
@@ -565,7 +681,7 @@ void MainWindow::startIndexing()
     options.extractFeatures  = ui->featuresCheck->isChecked();
     options.featureModelPath = iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
 
-    setBusy(true, QStringLiteral("Indexing"));
+    setBusy(true, tr("Indexing"));
     m_indexController->start(options);
 }
 
@@ -589,19 +705,19 @@ void MainWindow::onIndexFinished(const iw::IndexStats &stats, const QString &err
     }
 
     openDatabaseForRoot();
-    setStatus(QStringLiteral("Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6")
+    setStatus(tr("Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6")
                   .arg(stats.indexed)
                   .arg(stats.skipped)
                   .arg(stats.failed)
                   .arg(stats.pruned)
                   .arg(stats.elapsedMs / 1000.0, 0, 'f', 1)
-                  .arg(stats.cancelled ? QStringLiteral(" (cancelled)") : QString()));
+                  .arg(stats.cancelled ? tr(" (cancelled)") : QString()));
 }
 
 void MainWindow::buildVocabulary()
 {
     const QString dbPath = m_dbPath;
-    setBusy(true, QStringLiteral("Training the visual vocabulary"));
+    setBusy(true, tr("Training the visual vocabulary"));
     m_progress->setRange(0, 0);
 
     QThread *worker = QThread::create([this, dbPath] {
@@ -664,7 +780,7 @@ void MainWindow::buildVocabulary()
         if (dim <= 0 || sample.isEmpty()) {
             QMetaObject::invokeMethod(this, [this] {
                 setBusy(false);
-                setStatus(QStringLiteral("No descriptors to train on."));
+                setStatus(tr("No descriptors to train on."));
             }, Qt::QueuedConnection);
             return;
         }
@@ -674,7 +790,7 @@ void MainWindow::buildVocabulary()
             || !vocabulary->save(featureDir + QStringLiteral("/vocab.bin"), &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
                 setBusy(false);
-                setStatus(QStringLiteral("Vocabulary failed: %1").arg(error));
+                setStatus(tr("Vocabulary failed: %1").arg(error));
             }, Qt::QueuedConnection);
             return;
         }
@@ -684,7 +800,7 @@ void MainWindow::buildVocabulary()
         if (!index || !index->save(featureDir + QStringLiteral("/bow.bin"), &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
                 setBusy(false);
-                setStatus(QStringLiteral("Shortlist index failed: %1").arg(error));
+                setStatus(tr("Shortlist index failed: %1").arg(error));
             }, Qt::QueuedConnection);
             return;
         }
@@ -695,7 +811,7 @@ void MainWindow::buildVocabulary()
             m_progress->setRange(0, 100);
             m_progress->setValue(100);
             openDatabaseForRoot();
-            setStatus(QStringLiteral("Ready: %1 images searchable by object, "
+            setStatus(tr("Ready: %1 images searchable by object, "
                                      "%2-word vocabulary.")
                           .arg(stats.documents)
                           .arg(stats.words));
@@ -709,7 +825,7 @@ void MainWindow::cancelCurrentTask()
 {
     m_taskCancel.store(true, std::memory_order_relaxed);
     m_indexController->cancel();
-    setStatus(QStringLiteral("Cancelling…"));
+    setStatus(tr("Cancelling…"));
 }
 
 // ---------------------------------------------------------------------------
@@ -722,7 +838,7 @@ void MainWindow::findDuplicates()
         return;
     if (!m_database) {
         QMessageBox::information(this, windowTitle(),
-                                 QStringLiteral("Build an index for this folder first."));
+                                 tr("Build an index for this folder first."));
         return;
     }
 
@@ -733,7 +849,7 @@ void MainWindow::findDuplicates()
 
     const QString dbPath = m_dbPath;
     m_taskCancel.store(false, std::memory_order_relaxed);
-    setBusy(true, QStringLiteral("Matching"));
+    setBusy(true, tr("Matching"));
     m_progress->setRange(0, 0);
 
     // A second read-only connection: WAL lets it run alongside the UI's own.
@@ -756,7 +872,7 @@ void MainWindow::findDuplicates()
                                            m_progress->setRange(0, total);
                                            m_progress->setValue(done);
                                        }
-                                       m_progress->setFormat(QStringLiteral("%1  %p%").arg(stage));
+                                       m_progress->setFormat(QStringLiteral("%1  %p%").arg(stageLabel(stage)));
                                    }, Qt::QueuedConnection);
                                });
 
@@ -780,24 +896,24 @@ void MainWindow::onDuplicatesReady(const iw::DuplicateReport &report)
     int number = 0;
     for (const iw::DuplicateGroup &group : std::as_const(m_groups)) {
         ++number;
-        m_groupList->addItem(QStringLiteral("#%1  %2  %3 files  %4")
+        m_groupList->addItem(tr("#%1  %2  %3 files  %4")
                                  .arg(number)
                                  .arg(group.kind == iw::GroupKind::Exact
-                                          ? QStringLiteral("exact")
-                                          : QStringLiteral("near d≤%1").arg(group.maxDistance))
+                                          ? tr("exact")
+                                          : tr("near d≤%1").arg(group.maxDistance))
                                  .arg(group.files.size())
                                  .arg(humanBytes(group.wastedBytes)));
     }
 
-    QString status = QStringLiteral("%1 groups, %2 reclaimable")
+    QString status = tr("%1 groups, %2 reclaimable")
                          .arg(m_groups.size())
                          .arg(humanBytes(report.wastedBytes));
     if (report.skippedBuckets > 0) {
-        status += QStringLiteral(" — %1 oversized hash buckets skipped")
+        status += tr(" — %1 oversized hash buckets skipped")
                       .arg(report.skippedBuckets);
     }
     if (report.cancelled)
-        status += QStringLiteral(" (cancelled)");
+        status += tr(" (cancelled)");
     setStatus(status);
 
     if (!m_groups.isEmpty())
@@ -820,8 +936,8 @@ void MainWindow::onGroupSelected(int row)
 void MainWindow::chooseQueryImage()
 {
     const QString file = QFileDialog::getOpenFileName(
-        this, QStringLiteral("Choose a reference image"), m_root,
-        QStringLiteral("Images (*.png *.jpg *.jpeg);;All files (*)"));
+        this, tr("Choose a reference image"), m_root,
+        tr("Images (*.png *.jpg *.jpeg);;All files (*)"));
     if (!file.isEmpty())
         setQueryImage(file);
 }
@@ -837,7 +953,7 @@ void MainWindow::setQueryImage(const QString &path)
     reader.setAutoTransform(true);
     const QImage image = reader.read();
     if (image.isNull()) {
-        setStatus(QStringLiteral("Cannot read %1: %2").arg(path, reader.errorString()));
+        setStatus(tr("Cannot read %1: %2").arg(path, reader.errorString()));
         return;
     }
     setQueryImage(image, path);
@@ -849,7 +965,7 @@ void MainWindow::setQueryImage(const QImage &image, const QString &label)
     m_queryImage->setImage(image);
 
     if (image.isNull())
-        m_queryHint->setText(QStringLiteral("No reference image yet."));
+        m_queryHint->setText(tr("No reference image yet."));
 }
 
 void MainWindow::pasteQueryImage()
@@ -867,15 +983,15 @@ void MainWindow::pasteQueryImage()
                 return;
             }
         }
-        setStatus(QStringLiteral("The clipboard holds no image."));
+        setStatus(tr("The clipboard holds no image."));
         return;
     }
 
-    setQueryImage(image, QStringLiteral("(clipboard, %1 x %2)")
+    setQueryImage(image, tr("(clipboard, %1 x %2)")
                              .arg(image.width())
                              .arg(image.height()));
     m_tabs->setCurrentIndex(1);
-    setStatus(QStringLiteral("Pasted a %1 x %2 screenshot — drag a box around the object.")
+    setStatus(tr("Pasted a %1 x %2 screenshot — drag a box around the object.")
                   .arg(image.width())
                   .arg(image.height()));
 }
@@ -902,7 +1018,7 @@ void MainWindow::refreshMethodAvailability()
         if (QStandardItem *item = model->item(0)) {
             item->setEnabled(available);
             if (!available) {
-                item->setData(QStringLiteral(
+                item->setData(tr(
                                   "This index has no descriptors or vocabulary yet. Build them with:\n"
                                   "  imageworker index <dir> --db <db> --features\n"
                                   "  imageworker vocab <dir> --db <db>"),
@@ -917,7 +1033,7 @@ void MainWindow::refreshMethodAvailability()
         // ends up answered by a whole-image hash, which returns plausible-looking
         // scores for completely unrelated files.
         if (m_database) {
-            setStatus(QStringLiteral(
+            setStatus(tr(
                 "This index has no object-search data — press Index with "
                 "\"Object search data\" ticked. Until then only whole-image "
                 "similarity is available, which cannot find an object inside a picture."));
@@ -933,13 +1049,13 @@ void MainWindow::runQuery()
         return;
     if (!m_database) {
         QMessageBox::information(this, windowTitle(),
-                                 QStringLiteral("Build an index for this folder first."));
+                                 tr("Build an index for this folder first."));
         return;
     }
     if (m_methodCombo->currentIndex() == 0 && !neuralSearchAvailable()) {
         QMessageBox::information(
             this, windowTitle(),
-            QStringLiteral(
+            tr(
                 "This index has no local-feature descriptors yet, so an object cannot be "
                 "located inside an image.\n\nBuild them first:\n\n"
                 "  imageworker index \"%1\" --db \"%2\" --features\n"
@@ -952,7 +1068,7 @@ void MainWindow::runQuery()
     const QImage reference = m_queryImage->effectiveImage();
     if (reference.isNull()) {
         QMessageBox::warning(this, windowTitle(),
-                             QStringLiteral("Paste a screenshot with Ctrl+V, drop an image, "
+                             tr("Paste a screenshot with Ctrl+V, drop an image, "
                                             "or pick a file first."));
         return;
     }
@@ -978,7 +1094,7 @@ void MainWindow::runQuery()
         // export this machine's execution provider can actually run.
 
         m_taskCancel.store(false, std::memory_order_relaxed);
-        setBusy(true, QStringLiteral("Locating"));
+        setBusy(true, tr("Locating"));
         m_progress->setRange(0, 0);
 
         // Identity of what a cached finder was built for. Anything in here
@@ -1008,7 +1124,8 @@ void MainWindow::runQuery()
                                  QMetaObject::invokeMethod(this, [this, done, total] {
                                      m_progress->setRange(0, total);
                                      m_progress->setValue(done);
-                                     m_progress->setFormat(QStringLiteral("verifying  %p%"));
+                                     m_progress->setFormat(QStringLiteral("%1  %p%")
+                                                              .arg(stageLabel(QStringLiteral("verify"))));
                                  }, Qt::QueuedConnection);
                              },
                              &error);
@@ -1036,7 +1153,7 @@ void MainWindow::runQuery()
             referencePath = candidate;
     }
 
-    setBusy(true, QStringLiteral("Searching"));
+    setBusy(true, tr("Searching"));
     m_progress->setRange(0, 0);
 
     QThread *worker = QThread::create([this, dbPath, reference, referencePath, options] {
@@ -1074,7 +1191,7 @@ void MainWindow::onQueryReady(const iw::QueryResult &result)
     m_progress->setRange(0, 100);
     m_progress->setValue(100);
 
-    m_queryModel->setMetricLabel(QStringLiteral("distance"));
+    m_queryModel->setMetricLabel(tr("distance"));
     m_queryModel->setMatches(result.matches);
 
     // Say what the numbers mean. A distance past ~30 is noise however confident
@@ -1082,14 +1199,14 @@ void MainWindow::onQueryReady(const iw::QueryResult &result)
     const int best = result.matches.isEmpty() ? 128 : result.matches.first().distance;
     QString verdict;
     if (best <= 8)
-        verdict = QStringLiteral("the same picture");
+        verdict = tr("the same picture");
     else if (best <= 20)
-        verdict = QStringLiteral("plausibly the same picture, re-encoded or rescaled");
+        verdict = tr("plausibly the same picture, re-encoded or rescaled");
     else
-        verdict = QStringLiteral("nothing convincing — these are far apart, "
+        verdict = tr("nothing convincing — these are far apart, "
                                  "whatever the scores suggest");
 
-    setStatus(QStringLiteral("%1 hits of %2 indexed files, closest distance %3: %4. "
+    setStatus(tr("%1 hits of %2 indexed files, closest distance %3: %4. "
                              "Whole-image similarity, not object location.")
                   .arg(result.matches.size())
                   .arg(result.scannedRows)
@@ -1113,12 +1230,12 @@ void MainWindow::onFindReady(const QList<iw::FindResult> &results)
         m.distance = r.inliers; // the grid subtitle shows it as the evidence count
         asMatches.append(m);
     }
-    m_queryModel->setMetricLabel(QStringLiteral("inliers"));
+    m_queryModel->setMetricLabel(tr("inliers"));
     m_queryModel->setMatches(asMatches);
 
     if (results.isEmpty()) {
         m_queryImage->setMatchOutline({});
-        setStatus(QStringLiteral("Nothing located. Try boxing the object, or check that the "
+        setStatus(tr("Nothing located. Try boxing the object, or check that the "
                                  "asset is actually indexed."));
         return;
     }
@@ -1134,12 +1251,11 @@ void MainWindow::onFindReady(const QList<iw::FindResult> &results)
     }
     m_queryImage->setMatchOutline(outline, QFileInfo(best.file.rel).fileName());
 
-    setStatus(QStringLiteral("Located %1 asset%2; best: %3 (%4 inliers, %5 consistent)")
-                  .arg(results.size())
-                  .arg(results.size() == 1 ? QString() : QStringLiteral("s"))
+    setStatus(tr("Located %n asset(s); best: %1 (%2 inliers, %3% consistent)", "",
+                 results.size())
                   .arg(QFileInfo(best.file.rel).fileName())
                   .arg(best.inliers)
-                  .arg(QStringLiteral("%1%").arg(qRound(best.inlierRatio * 100.0))));
+                  .arg(qRound(best.inlierRatio * 100.0)));
     m_tabs->setCurrentIndex(1);
 }
 
@@ -1158,7 +1274,7 @@ void MainWindow::findDuplicatesOf(const QString &absolutePath)
         return;
     if (!m_database) {
         QMessageBox::information(this, windowTitle(),
-                                 QStringLiteral("Build an index for this folder first."));
+                                 tr("Build an index for this folder first."));
         return;
     }
 
@@ -1171,7 +1287,7 @@ void MainWindow::findDuplicatesOf(const QString &absolutePath)
     m_maxDistSpin->setValue(16);
     m_tabs->setCurrentIndex(1);
 
-    setStatus(QStringLiteral("Looking for copies of %1…")
+    setStatus(tr("Looking for copies of %1…")
                   .arg(QFileInfo(absolutePath).fileName()));
     runQuery();
 }
@@ -1203,22 +1319,22 @@ void MainWindow::showResultMenu(const QPoint &position)
     const QString absolute = iw::absolutePathFor(m_root, row.rel);
 
     QMenu menu(this);
-    menu.addAction(QStringLiteral("Open"), this, [absolute] {
+    menu.addAction(tr("Open"), this, [absolute] {
         QDesktopServices::openUrl(QUrl::fromLocalFile(absolute));
     });
-    menu.addAction(QStringLiteral("Reveal in file manager"), this, [absolute] {
+    menu.addAction(tr("Reveal in file manager"), this, [absolute] {
         iw::revealInFileManager(absolute);
     });
     menu.addSeparator();
-    menu.addAction(QStringLiteral("Find duplicates of this image"), this,
+    menu.addAction(tr("Find duplicates of this image"), this,
                    [this, absolute] { findDuplicatesOf(absolute); });
-    menu.addAction(QStringLiteral("Use as reference image"), this, [this, absolute] {
+    menu.addAction(tr("Use as reference image"), this, [this, absolute] {
         setQueryImage(absolute);
         m_tabs->setCurrentIndex(1);
     });
     menu.addSeparator();
-    menu.addAction(QStringLiteral("Copy full path"), this, [this] { copySelectedPaths(true); });
-    menu.addAction(QStringLiteral("Copy path relative to the root"), this,
+    menu.addAction(tr("Copy full path"), this, [this] { copySelectedPaths(true); });
+    menu.addAction(tr("Copy path relative to the root"), this,
                    [this] { copySelectedPaths(false); });
     menu.exec(view->viewport()->mapToGlobal(position));
 }

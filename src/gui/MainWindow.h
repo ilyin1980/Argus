@@ -21,6 +21,7 @@ class ResultModel;
 
 class QCheckBox;
 class QComboBox;
+class QMenu;
 class QLabel;
 class QLineEdit;
 class QListView;
@@ -77,6 +78,9 @@ protected:
      * override is dropped here and the window action goes ahead.
      */
     bool eventFilter(QObject *watched, QEvent *event) override;
+
+    /** @brief Catch QEvent::LanguageChange and repaint every string. */
+    void changeEvent(QEvent *event) override;
 
     void dragEnterEvent(QDragEnterEvent *event) override;
     void dropEvent(QDropEvent *event) override;
@@ -137,11 +141,31 @@ private:
     /** @brief Populate and wire the parts of the form that are data-driven. */
     void wireForm();
 
-    /** @brief Build View > Theme, restoring and persisting the user's choice. */
-    void buildThemeMenu();
+    /** @brief Build the whole menu bar from scratch, View first, then Help. */
+    void buildMenus();
+
+    /**
+     * @brief Fill View > Theme, restoring and persisting the user's choice.
+     * @param themes Submenu to populate; owns the actions and their group.
+     */
+    void buildThemeMenu(QMenu *themes);
+
+    /**
+     * @brief Fill View > Language with every catalogue this build carries.
+     * @param languages Submenu to populate.
+     */
+    void buildLanguageMenu(QMenu *languages);
 
     /** @brief Build the Help menu. */
     void buildHelpMenu();
+
+    /**
+     * @brief Put every piece of text back after the language changed.
+     *
+     * Qt retranslates nothing by itself: it delivers a LanguageChange event and
+     * leaves the strings already handed to widgets exactly as they were.
+     */
+    void retranslateDynamic();
 
     /**
      * @brief Show the manual.

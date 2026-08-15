@@ -10,7 +10,7 @@
 HelpDialog::HelpDialog(QWidget *parent)
     : QDialog(parent)
 {
-    setWindowTitle(QStringLiteral("ImageWorker — Help"));
+    setWindowTitle(tr("ImageWorker — Help"));
     // A manual you cannot keep open beside the window you are learning is half
     // a manual, so this is a plain window rather than a modal dialog.
     setWindowFlag(Qt::Window, true);
@@ -22,8 +22,8 @@ HelpDialog::HelpDialog(QWidget *parent)
     m_tabs = new QTabWidget(this);
     layout->addWidget(m_tabs);
 
-    addDocument(QStringLiteral("Using ImageWorker"), QStringLiteral(":/help/user-guide.md"));
-    addDocument(QStringLiteral("Command line"), QStringLiteral(":/help/cli-reference.md"));
+    addDocument(tr("Using ImageWorker"), QStringLiteral(":/help/user-guide.md"));
+    addDocument(tr("Command line"), QStringLiteral(":/help/cli-reference.md"));
 }
 
 void HelpDialog::addDocument(const QString &title, const QString &resourcePath)
@@ -39,7 +39,7 @@ void HelpDialog::addDocument(const QString &title, const QString &resourcePath)
     } else {
         // Should never happen with compiled-in resources, but a blank tab would
         // leave the reader guessing about what went wrong.
-        browser->setPlainText(QStringLiteral("Could not load %1.").arg(resourcePath));
+        browser->setPlainText(tr("Could not load %1.").arg(resourcePath));
     }
 
     m_tabs->addTab(browser, title);

@@ -222,11 +222,13 @@ QList<Id> all()
 
 QString name(Id id)
 {
+    // Translated on every call, never cached: the menu is rebuilt when the
+    // language changes and must come back in the new one.
     switch (id) {
-    case Id::System:   return QStringLiteral("System");
-    case Id::SciFi:    return QStringLiteral("Sci-fi");
-    case Id::Material: return QStringLiteral("Material");
-    case Id::Blossom:  return QStringLiteral("Blossom");
+    case Id::System:   return QCoreApplication::translate("theme", "System");
+    case Id::SciFi:    return QCoreApplication::translate("theme", "Sci-fi");
+    case Id::Material: return QCoreApplication::translate("theme", "Material");
+    case Id::Blossom:  return QCoreApplication::translate("theme", "Blossom");
     }
     return {};
 }

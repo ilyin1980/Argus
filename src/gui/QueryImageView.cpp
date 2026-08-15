@@ -132,7 +132,7 @@ void QueryImageView::paintEvent(QPaintEvent *event)
         painter.drawRect(rect().adjusted(0, 0, -1, -1));
         painter.setPen(palette().text().color());
         painter.drawText(rect(), Qt::AlignCenter,
-                         QStringLiteral("Ctrl+V to paste a screenshot,\nor drop an image here"));
+                         tr("Ctrl+V to paste a screenshot,\nor drop an image here"));
         return;
     }
 
