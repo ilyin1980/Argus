@@ -1,11 +1,16 @@
 #include "HelpDialog.h"
 
+#include "Localization.h"
 #include "Theme.h"
 
+#include <QEvent>
 #include <QFile>
+#include <QFileInfo>
 #include <QTabWidget>
 #include <QTextBrowser>
 #include <QVBoxLayout>
+
+#include <algorithm>
 
 HelpDialog::HelpDialog(QWidget *parent)
     : QDialog(parent)
@@ -22,17 +27,45 @@ HelpDialog::HelpDialog(QWidget *parent)
     m_tabs = new QTabWidget(this);
     layout->addWidget(m_tabs);
 
-    addDocument(tr("Using ImageWorker"), QStringLiteral(":/help/user-guide.md"));
-    addDocument(tr("Command line"), QStringLiteral(":/help/cli-reference.md"));
+    loadDocuments();
 }
 
-void HelpDialog::addDocument(const QString &title, const QString &resourcePath)
+QString HelpDialog::documentPath(const QString &baseName)
+{
+    const QString code = i18n::activeCode();
+    if (!code.isEmpty()) {
+        const QString exact =
+            QStringLiteral(":/help/%1.%2.md").arg(baseName, code);
+        if (QFileInfo::exists(exact))
+            return exact;
+
+        // pt_BR falls back to a pt manual before falling back to English.
+        const QString language = code.section(QLatin1Char('_'), 0, 0);
+        if (language != code) {
+            const QString broader =
+                QStringLiteral(":/help/%1.%2.md").arg(baseName, language);
+            if (QFileInfo::exists(broader))
+                return broader;
+        }
+    }
+    return QStringLiteral(":/help/%1.md").arg(baseName);
+}
+
+void HelpDialog::loadDocuments()
+{
+    m_tabs->clear();
+    addDocument(tr("Using ImageWorker"), QStringLiteral("user-guide"));
+    addDocument(tr("Command line"), QStringLiteral("cli-reference"));
+}
+
+void HelpDialog::addDocument(const QString &title, const QString &baseName)
 {
     auto *browser = new QTextBrowser(m_tabs);
     browser->setOpenExternalLinks(true);
     browser->setFrameShape(QFrame::NoFrame);
     browser->document()->setDocumentMargin(18);
 
+    const QString resourcePath = documentPath(baseName);
     QFile file(resourcePath);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         browser->setMarkdown(QString::fromUtf8(file.readAll()));
@@ -43,6 +76,17 @@ void HelpDialog::addDocument(const QString &title, const QString &resourcePath)
     }
 
     m_tabs->addTab(browser, title);
+}
+
+void HelpDialog::changeEvent(QEvent *event)
+{
+    if (event->type() == QEvent::LanguageChange) {
+        const int current = m_tabs->currentIndex();
+        setWindowTitle(tr("ImageWorker — Help"));
+        loadDocuments();
+        m_tabs->setCurrentIndex(std::max(0, current));
+    }
+    QDialog::changeEvent(event);
 }
 
 void HelpDialog::showPage(Page page)

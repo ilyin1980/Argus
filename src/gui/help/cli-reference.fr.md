@@ -1,0 +1,132 @@
+# Ligne de commande et automatisation
+
+Le paquet livre **deux exécutables construits sur la même bibliothèque de
+base** :
+
+| | |
+|---|---|
+| `imageworker-gui` | la fenêtre dans laquelle vous lisez ceci |
+| `imageworker` | sans interface ; tout ce que fait la GUI, plus des options d'indexation qu'elle n'expose pas |
+
+Ils partagent toute la logique : un dossier indexé par l'un est lu par l'autre.
+Aucun n'enveloppe l'autre — les deux lient le même cœur statique.
+
+---
+
+## Contrat de sortie
+
+Appuyez-vous dessus pour scripter ; il est délibérément stable.
+
+- `--json` écrit du **JSON délimité par des sauts de ligne sur stdout**, un objet
+  par ligne. Chaque résultat porte à la fois `rel` (relatif au dossier indexé) et
+  `path` (absolu).
+- `--paths` écrit des **chemins absolus bruts**, un par ligne, pour les tubes.
+  Dans `dupes`, une ligne vide sépare les groupes. L'option implique `--quiet`,
+  et la combiner avec `--json` est une erreur plutôt qu'un choix silencieux entre
+  les deux.
+- La progression, les avertissements et les erreurs vont toujours sur **stderr**,
+  jamais sur stdout.
+- Les résultats sortent dans un ordre déterministe.
+- Codes de retour : **0** quelque chose a été trouvé, **1** rien, **2** une
+  erreur.
+
+---
+
+## Commandes
+
+```
+imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+imageworker vocab  <dir> [--words 2048] [--sample 120000]
+imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+imageworker query  <dir> --image ref.png [--top 20]
+imageworker match  --query q.png --asset a.png
+imageworker stats  <dir>
+imageworker doctor [--extract img.png]
+imageworker formats
+```
+
+Chaque commande accepte `--db <path>` pour placer l'index ailleurs que dans
+`<dir>/.imageworker`.
+
+### Préparer un dossier pour la recherche d'objet
+
+```
+imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
+imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+```
+
+`index` seul donne la détection de doublons. `--features` ajoute les descripteurs
+neuronaux, et `vocab` entraîne par-dessus l'index de présélection ; les deux sont
+nécessaires avant que `find` fonctionne. Relancez `vocab` après avoir ajouté un
+gros lot d'assets, pas après chaque fichier.
+
+### Rechercher
+
+```
+imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+```
+
+Passez `--roi x,y,w,h` quand vous savez où se trouve l'objet. C'est l'option la
+plus efficace de toutes : sur une zone encadrée, la recherche est environ cinq
+fois plus rapide et trouve à peu près deux fois plus de points correspondants.
+
+### Enchaîner
+
+```
+imageworker dupes D:/game/Assets --paths > groups.txt
+imageworker find  D:/game/Assets --image shot.png --paths | clip
+```
+
+---
+
+## Vérifier l'installation
+
+```
+imageworker doctor
+```
+
+Indique les versions d'ONNX Runtime et d'OpenCV, les fournisseurs d'exécution
+disponibles, et si une session DirectML peut réellement être créée sur ce pilote —
+ce qui n'est pas la même chose que de voir le fournisseur simplement listé.
+`--extract <image>` fait passer l'extracteur sur un fichier et indique combien de
+points d'intérêt il a trouvés et en combien de temps.
+
+---
+
+## Où se trouve quoi
+
+```
+<dossier d'index>/
+  index.db              SQLite : fichiers, empreintes, aperçus, décalages de descripteurs
+  features/desc.f16     descripteurs, demi-précision
+  features/kpts.f32     points d'intérêt
+  features/vocab.bin    vocabulaire visuel
+  features/bow.bin      index de présélection
+```
+
+Supprimer le dossier d'index remet tout à zéro et ne touche à rien d'autre. Les
+chemins en base sont stockés **relativement au dossier indexé**, si bien qu'un
+index reste valide quand le même stockage est monté ailleurs.
+
+Les modèles sont cherchés dans `models/` à côté de l'exécutable, puis dans les
+dossiers parents au-dessus — ainsi un paquet installé comme un arbre de
+compilation fonctionnent sans configuration.
+
+---
+
+## Compiler
+
+```
+cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --build --preset msvc-release
+cmake --install build/msvc-release
+```
+
+`IMAGEWORKER_WITH_INFERENCE=OFF` compile sans ONNX Runtime ni OpenCV ; la
+recherche de doublons fonctionne toujours, la recherche d'objet non.
+
+L'étape d'installation assemble un dossier autonome — chaque dépendance à côté
+des exécutables, rien lu depuis `PATH`. Un binaire unique est impossible : ONNX
+Runtime avec DirectML n'existe qu'en DLL, et `DirectML.dll` est un redistribuable
+qui ne peut pas être lié du tout.

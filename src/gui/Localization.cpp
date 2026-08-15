@@ -47,6 +47,10 @@ const Entry kEntries[] = {
 QTranslator *g_app = nullptr;
 QTranslator *g_qt  = nullptr;
 
+/// The catalogue install() settled on, which is not necessarily what it was
+/// asked for: "follow the system" resolves here, and so does de_AT to de.
+QString g_active;
+
 /** @brief Resource path of a catalogue, whether or not it exists. */
 QString cataloguePath(const QString &code)
 {
@@ -105,6 +109,11 @@ QString savedCode()
     return QSettings().value(kSettingsKey, QString()).toString();
 }
 
+QString activeCode()
+{
+    return g_active;
+}
+
 bool install(QCoreApplication &app, const QString &code)
 {
     QSettings().setValue(kSettingsKey, code);
@@ -126,6 +135,8 @@ bool install(QCoreApplication &app, const QString &code)
         g_qt = nullptr;
     }
 
+    g_active.clear();
+
     if (resolved.isEmpty() || resolved == QLatin1String("en"))
         return resolved == QLatin1String("en") || code.isEmpty();
 
@@ -134,6 +145,7 @@ bool install(QCoreApplication &app, const QString &code)
         delete translator;
         return false;
     }
+    g_active = resolved;
     app.installTranslator(translator);
     g_app = translator;
 

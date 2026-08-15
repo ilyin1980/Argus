@@ -104,10 +104,15 @@ Every result carries the full path:
 
 ---
 
-## 5. Themes
+## 5. Themes and language
 
 **View → Theme** switches between System, Sci-fi, Material and Blossom while the
 program is running. The choice is remembered.
+
+**View → Language** switches the interface, also without a restart. The list
+holds every language this build carries; **System language** follows the
+operating system. This manual is translated too, and falls back to English for
+a language whose manual is not ready yet.
 
 ---
 

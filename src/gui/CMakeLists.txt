@@ -51,12 +51,16 @@ endif()
 
 # Compiled in rather than shipped beside the executable: the manual has to be
 # there in a packaged folder and after someone moves the binary.
+#
+# Globbed because the manual comes in one file per language, and a list that
+# has to be edited by hand is a list that will one day be missing a language
+# nobody notices until a reader gets an English page.
+file(GLOB IMAGEWORKER_HELP_FILES RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+     CONFIGURE_DEPENDS "help/*.md")
 qt_add_resources(imageworker-gui "help"
     PREFIX "/help"
     BASE "help"
-    FILES
-        help/user-guide.md
-        help/cli-reference.md
+    FILES ${IMAGEWORKER_HELP_FILES}
 )
 
 set_target_properties(imageworker-gui PROPERTIES
