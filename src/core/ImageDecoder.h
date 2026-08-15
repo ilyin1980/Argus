@@ -23,6 +23,17 @@ struct DecodeRequest {
     int  alphaBackground = 128;  ///< Grey level transparent pixels are flattened onto.
 };
 
+/**
+ * @brief Longest side the hash inputs are always derived from.
+ *
+ * Fixed on purpose, and deliberately independent of the preview size and of
+ * whether a preview was asked for at all. Scaling an image to 256 and then to
+ * 32 does not land on the same pixels as scaling it to 128 and then to 32, so
+ * letting the caller's options reach the hash chain made the same file hash
+ * differently depending on who asked: a file did not even match itself.
+ */
+constexpr int kHashSourceBox = 256;
+
 /** @brief Everything one decode produced. */
 struct DecodedImage {
     bool       ok      = false; ///< False when the file could not be decoded.

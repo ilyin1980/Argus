@@ -44,6 +44,38 @@ QImage flattenAlpha(const QImage &src, int background)
     return out;
 }
 
+/// Shrink to fit a square box, keeping the aspect ratio; a no-op when already
+/// small enough. Enlarging would invent detail the hash would then measure.
+QImage fitToBox(const QImage &src, int box)
+{
+    if (src.isNull() || (src.width() <= box && src.height() <= box))
+        return src;
+
+    QSize target = src.size();
+    target.scale(box, box, Qt::KeepAspectRatio);
+    if (target.isEmpty())
+        return src;
+    return src.scaled(target, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+}
+
+/// Read a file, asking the plugin for a reduced decode that fits @p box. The
+/// target size is computed exactly as fitToBox() computes it, so a file read
+/// this way and the same file read whole and then fitted agree pixel for pixel.
+QImage readFitted(const QString &absPath, const QSize &full, int box)
+{
+    QImageReader reader(absPath);
+    reader.setAutoTransform(true);           // honour the EXIF orientation tag
+    reader.setDecideFormatFromContent(true); // wrong extensions are common
+
+    if (full.isValid() && (full.width() > box || full.height() > box)) {
+        QSize scaled = full;
+        scaled.scale(box, box, Qt::KeepAspectRatio);
+        if (!scaled.isEmpty())
+            reader.setScaledSize(scaled);
+    }
+    return reader.read();
+}
+
 } // namespace
 
 QStringList supportedExtensions()
@@ -131,37 +163,47 @@ DecodedImage decodeForIndex(const QString &absPath, const DecodeRequest &req)
 {
     DecodedImage out;
 
-    QImageReader reader(absPath);
-    reader.setAutoTransform(true);          // honour the EXIF orientation tag
-    reader.setDecideFormatFromContent(true); // wrong extensions are common
-
-    const QSize full = reader.size();
-    if (full.isValid()) {
-        out.width  = full.width();
-        out.height = full.height();
-
-        // Ask the plugin for a smaller decode when it can do it cheaply
-        // (libjpeg scale_denom); harmless when it cannot.
-        const int target = req.wantThumbnail ? std::max(req.thumbSize, 128) : 128;
-        if (full.width() > target || full.height() > target) {
-            QSize scaled = full;
-            scaled.scale(target, target, Qt::KeepAspectRatio);
-            if (!scaled.isEmpty())
-                reader.setScaledSize(scaled);
-        }
+    QSize full;
+    {
+        QImageReader probe(absPath);
+        probe.setAutoTransform(true);
+        probe.setDecideFormatFromContent(true);
+        full = probe.size();
     }
 
-    QImage image = reader.read();
+    // A preview wider than the hash box needs a bigger decode; the hash does
+    // not, and must not be computed from it.
+    const int box = req.wantThumbnail ? std::max(req.thumbSize, kHashSourceBox) : kHashSourceBox;
+
+    const QImage image = readFitted(absPath, full, box);
     if (image.isNull()) {
+        QImageReader reader(absPath);
         out.error = reader.errorString();
         return out;
     }
 
     DecodedImage derived = decodeFromImage(image, req);
+
+    // Only reachable with an unusually large preview size. Scaling twice does
+    // not land where one scale does, so the hash gets its own decode rather
+    // than a second-hand one, and stays a function of the file alone.
+    if (derived.ok && box != kHashSourceBox) {
+        const QImage exact = readFitted(absPath, full, kHashSourceBox);
+        if (!exact.isNull()) {
+            DecodeRequest hashOnly = req;
+            hashOnly.wantThumbnail = false;
+            const DecodedImage hashed = decodeFromImage(exact, hashOnly);
+            if (hashed.ok) {
+                derived.gray32  = hashed.gray32;
+                derived.gray9x8 = hashed.gray9x8;
+            }
+        }
+    }
+
     if (full.isValid()) {
         // Keep the true on-disk dimensions, not those of the reduced decode.
-        derived.width  = out.width;
-        derived.height = out.height;
+        derived.width  = full.width();
+        derived.height = full.height();
     }
     return derived;
 }
@@ -177,17 +219,23 @@ DecodedImage decodeFromImage(const QImage &source, const DecodeRequest &req)
     out.width  = source.width();
     out.height = source.height();
 
-    const QImage image = flattenAlpha(source, req.alphaBackground);
+    // Fit before flattening, in that order: the reduced decode in
+    // decodeForIndex() also scales while the alpha channel is still there, and
+    // scaling a semi-transparent edge before or after it is composited gives
+    // different pixels.
+    const QImage hashSource = flattenAlpha(fitToBox(source, kHashSourceBox), req.alphaBackground);
 
-    out.gray32  = toGray(image, 32, 32);
-    out.gray9x8 = toGray(image, 9, 8);
+    out.gray32  = toGray(hashSource, 32, 32);
+    out.gray9x8 = toGray(hashSource, 9, 8);
     if (out.gray32.isNull() || out.gray9x8.isNull()) {
         out.error = QStringLiteral("grayscale conversion failed");
         return out;
     }
 
-    if (req.wantThumbnail)
-        out.thumbnail = encodeThumbnail(image, req.thumbSize, req.thumbQuality);
+    if (req.wantThumbnail) {
+        out.thumbnail = encodeThumbnail(flattenAlpha(source, req.alphaBackground),
+                                        req.thumbSize, req.thumbQuality);
+    }
 
     out.ok = true;
     return out;

@@ -1026,10 +1026,20 @@ void MainWindow::runQuery()
     options.topK        = m_topSpin->value();
     options.maxDistance = m_maxDistSpin->value();
 
+    // Hand the file to the core rather than the pixels the preview is holding,
+    // so a search started here runs the exact decode the indexer ran and a file
+    // finds itself at distance 0. A cropped region has no file to point at.
+    QString referencePath;
+    if (!m_queryImage->hasSelection()) {
+        const QString candidate = m_queryEdit->text();
+        if (!candidate.isEmpty() && QFileInfo(candidate).isFile())
+            referencePath = candidate;
+    }
+
     setBusy(true, QStringLiteral("Searching"));
     m_progress->setRange(0, 0);
 
-    QThread *worker = QThread::create([this, dbPath, reference, options] {
+    QThread *worker = QThread::create([this, dbPath, reference, referencePath, options] {
         iw::Database db;
         QString error;
         if (!db.open(dbPath, &error)) {
@@ -1041,7 +1051,10 @@ void MainWindow::runQuery()
         }
 
         QString queryError;
-        const iw::QueryResult result = iw::queryByImage(db, reference, options, &queryError);
+        const iw::QueryResult result =
+            referencePath.isEmpty()
+                ? iw::queryByImage(db, reference, options, &queryError)
+                : iw::queryByImage(db, referencePath, options, &queryError);
         QMetaObject::invokeMethod(this, [this, result, queryError] {
             if (!queryError.isEmpty()) {
                 setBusy(false);
@@ -1139,6 +1152,30 @@ QListView *MainWindow::activeResultView() const
     return m_tabs->currentIndex() == 0 ? m_groupView : m_queryView;
 }
 
+void MainWindow::findDuplicatesOf(const QString &absolutePath)
+{
+    if (m_busy)
+        return;
+    if (!m_database) {
+        QMessageBox::information(this, windowTitle(),
+                                 QStringLiteral("Build an index for this folder first."));
+        return;
+    }
+
+    setQueryImage(absolutePath);
+    m_queryImage->clearSelection(); // a duplicate is the whole picture, never a crop
+
+    // Whole-image similarity, at a radius where the hits really are the same
+    // picture: re-encoded, rescaled, or saved again by a different tool.
+    m_methodCombo->setCurrentIndex(1);
+    m_maxDistSpin->setValue(16);
+    m_tabs->setCurrentIndex(1);
+
+    setStatus(QStringLiteral("Looking for copies of %1…")
+                  .arg(QFileInfo(absolutePath).fileName()));
+    runQuery();
+}
+
 void MainWindow::openSelected(const QModelIndex &index)
 {
     auto *model = qobject_cast<const ResultModel *>(index.model());
@@ -1173,6 +1210,8 @@ void MainWindow::showResultMenu(const QPoint &position)
         iw::revealInFileManager(absolute);
     });
     menu.addSeparator();
+    menu.addAction(QStringLiteral("Find duplicates of this image"), this,
+                   [this, absolute] { findDuplicatesOf(absolute); });
     menu.addAction(QStringLiteral("Use as reference image"), this, [this, absolute] {
         setQueryImage(absolute);
         m_tabs->setCurrentIndex(1);

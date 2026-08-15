@@ -108,6 +108,17 @@ private slots:
     void onQueryReady(const iw::QueryResult &result);
     void onFindReady(const QList<iw::FindResult> &results);
 
+    /**
+     * @brief Search the index for near-identical copies of one file.
+     * @param absolutePath File to use as the reference.
+     *
+     * Deliberately the whole-image hash rather than the object search: the
+     * question "what else is this same picture" is not the question "where does
+     * this appear inside that", and the hash answers the first one directly and
+     * in milliseconds.
+     */
+    void findDuplicatesOf(const QString &absolutePath);
+
     void openSelected(const QModelIndex &index);
     void showResultMenu(const QPoint &position);
     void updatePathBar();
