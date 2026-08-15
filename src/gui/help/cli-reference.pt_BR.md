@@ -68,6 +68,33 @@ Passe `--roi x,y,w,h` quando souber onde está o objeto. É a opção mais efica
 todas: numa região delimitada a busca fica cerca de cinco vezes mais rápida e
 encontra aproximadamente o dobro de pontos correspondentes.
 
+### Outros branches do git
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+As imagens são lidas do armazenamento de objetos, então nada é feito checkout e a
+árvore de trabalho fica intacta. O conjunto informado é o conjunto completo: um
+branch indexado antes e não citado agora sai do índice. `--branches all` pega
+todos os branches locais, e `--remote-branches` acrescenta os de rastreamento
+remoto.
+
+Reindexar sai barato. Um branch com a ponta parada é pulado sem listar nenhuma
+árvore, e dentro de um branch quem decide é o id do blob: um endereço por
+conteúdo, portanto uma verificação mais firme do que o tamanho e a data usados
+para arquivos.
+
+Linhas vindas de um branch nunca informam um caminho do sistema de arquivos,
+porque ele não existe. A saída normal e `--paths` escrevem a sintaxe
+`branch:caminho` do próprio git, que o `git show` aceita; `--json` carrega `ref`,
+`blob` e `rev` no lugar de `path`.
+
+Com Git LFS os objetos são resolvidos do armazenamento LFS local. Os que faltam
+são contados e informados uma única vez, com `git lfs fetch --all` como solução;
+nada é baixado por conta própria.
+
 ### Encadeamento
 
 ```

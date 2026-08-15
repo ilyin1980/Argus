@@ -112,7 +112,33 @@ Cada resultado lleva su ruta completa:
 
 ---
 
-## 5. Temas e idioma
+## 5. Otras ramas de git
+
+Si la carpeta de imágenes está dentro de un repositorio git, se habilita
+**Ramas…**. Marque las ramas que quiera y pulse **Indexar**: sus imágenes se leen
+directamente del repositorio, así que no se extrae nada y su árbol de trabajo no
+se toca. La rama que tiene activa no aparece en la lista: ella *es* el árbol de
+trabajo.
+
+La lista de ramas describe exactamente lo que contiene el índice. Desmarcar una
+rama y volver a indexar la elimina.
+
+Los resultados de una rama muestran su nombre y se identifican como
+`rama:ruta` en lugar de como una ruta de archivo, porque ese archivo no existe en
+el disco. **Abrir** extrae esa versión a un archivo temporal para que pueda
+verla; mostrarla en el gestor de archivos y buscar con ella son solo para
+archivos del árbol de trabajo.
+
+Reindexar sale barato: una rama cuya punta no se ha movido se omite por completo,
+y dentro de una rama solo se releen los archivos cuyo contenido cambió de verdad.
+
+> **Git LFS**: las imágenes se resuelven desde su almacén LFS local. Si una rama
+> nunca se descargó, ImageWorker dice cuántos objetos faltan y que
+> `git lfs fetch --all` los trae; por su cuenta no descarga nada.
+
+---
+
+## 6. Temas e idioma
 
 **Ver → Tema** alterna entre Sistema, Sci-fi, Material y Floral mientras el
 programa está en marcha. La elección se recuerda.

@@ -112,7 +112,34 @@ Jedes Ergebnis trägt seinen vollständigen Pfad:
 
 ---
 
-## 5. Designs und Sprache
+## 5. Andere Git-Branches
+
+Liegt der Bilderordner in einem Git-Repository, wird **Branches…** verfügbar.
+Haken Sie die gewünschten Branches an und drücken Sie **Indizieren**: ihre Bilder
+werden direkt aus dem Repository gelesen, es wird also nichts ausgecheckt und Ihr
+Arbeitsbaum bleibt unangetastet. Der ausgecheckte Branch fehlt in der Liste — er
+*ist* der Arbeitsbaum.
+
+Die Branch-Liste ist das vollständige Bild dessen, was der Index enthält. Einen
+Haken zu entfernen und erneut zu indizieren nimmt den Branch aus dem Index.
+
+Treffer aus einem Branch zeigen den Branch-Namen und weisen sich als
+`branch:pfad` aus statt als Dateipfad, denn eine solche Datei gibt es auf der
+Platte nicht. **Öffnen** entpackt diese Fassung in eine temporäre Datei, damit
+Sie sie ansehen können; im Dateimanager anzeigen und damit suchen gibt es nur für
+Dateien im Arbeitsbaum.
+
+Erneutes Indizieren ist billig: ein Branch, dessen Spitze sich nicht bewegt hat,
+wird ganz übersprungen, und innerhalb eines Branches werden nur Dateien neu
+gelesen, deren Inhalt sich tatsächlich geändert hat.
+
+> **Git LFS**: die Bilder kommen aus Ihrem lokalen LFS-Speicher. Wurde ein Branch
+> nie geholt, nennt ImageWorker die Zahl der fehlenden Objekte und dass
+> `git lfs fetch --all` sie besorgt — von sich aus lädt es nichts herunter.
+
+---
+
+## 6. Designs und Sprache
 
 **Ansicht → Design** wechselt im laufenden Betrieb zwischen System, Sci-Fi,
 Material und Blüte. Die Wahl wird gemerkt.

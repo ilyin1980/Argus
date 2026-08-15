@@ -109,7 +109,33 @@ Todo resultado carrega o caminho completo:
 
 ---
 
-## 5. Temas e idioma
+## 5. Outros branches do git
+
+Se a pasta de imagens estiver dentro de um repositório git, **Branches…** fica
+disponível. Marque os branches que quiser e pressione **Indexar**: as imagens
+deles são lidas direto do repositório, então nada é feito checkout e sua árvore
+de trabalho não é tocada. O branch em que você está não aparece na lista — ele *é*
+a árvore de trabalho.
+
+A lista de branches é o retrato completo do que o índice contém. Desmarcar um
+branch e indexar de novo o remove.
+
+Resultados vindos de um branch mostram o nome dele e se identificam como
+`branch:caminho` em vez de um caminho de arquivo, porque esse arquivo não existe
+no disco. **Abrir** extrai essa versão para um arquivo temporário para você
+poder vê-la; mostrar no gerenciador de arquivos e buscar com ela valem só para
+arquivos da árvore de trabalho.
+
+Reindexar sai barato: um branch cuja ponta não se moveu é pulado por inteiro, e
+dentro de um branch só são relidos os arquivos cujo conteúdo realmente mudou.
+
+> **Git LFS**: as imagens são resolvidas a partir do seu armazenamento LFS local.
+> Se um branch nunca foi baixado, o ImageWorker diz quantos objetos faltam e que
+> `git lfs fetch --all` os traz — sozinho ele não baixa nada.
+
+---
+
+## 6. Temas e idioma
 
 **Exibir → Tema** alterna entre Sistema, Sci-fi, Material e Floral com o programa
 em execução. A escolha é lembrada.

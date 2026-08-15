@@ -110,7 +110,34 @@ Elk resultaat draagt zijn volledige pad:
 
 ---
 
-## 5. Thema's en taal
+## 5. Andere git-branches
+
+Ligt de afbeeldingenmap in een git-repository, dan wordt **Branches…**
+beschikbaar. Vink de gewenste branches aan en druk op **Indexeren**: hun
+afbeeldingen worden rechtstreeks uit de repository gelezen, er wordt dus niets
+uitgecheckt en uw werkmap blijft ongemoeid. De branch die u hebt uitgecheckt
+staat niet in de lijst — die *is* de werkmap.
+
+De lijst met branches is het volledige beeld van wat de index bevat. Een vinkje
+weghalen en opnieuw indexeren verwijdert die branch.
+
+Resultaten uit een branch tonen de branchnaam en melden zich als `branch:pad` in
+plaats van als een bestandspad, want zo'n bestand staat niet op schijf.
+**Openen** pakt die versie uit naar een tijdelijk bestand zodat u ernaar kunt
+kijken; tonen in de verkenner en ermee zoeken gelden alleen voor bestanden in de
+werkmap.
+
+Opnieuw indexeren kost weinig: een branch waarvan de tip niet is verschoven wordt
+helemaal overgeslagen, en binnen een branch worden alleen bestanden herlezen
+waarvan de inhoud echt is veranderd.
+
+> **Git LFS**: de afbeeldingen komen uit uw lokale LFS-opslag. Is een branch nooit
+> opgehaald, dan meldt ImageWorker hoeveel objecten ontbreken en dat
+> `git lfs fetch --all` ze binnenhaalt — zelf downloadt het niets.
+
+---
+
+## 6. Thema's en taal
 
 **Beeld → Thema** wisselt tijdens het draaien tussen Systeem, Sci-fi, Material en
 Bloesem. De keuze wordt onthouden.

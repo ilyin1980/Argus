@@ -110,7 +110,34 @@ Ogni risultato porta con sé il percorso completo:
 
 ---
 
-## 5. Temi e lingua
+## 5. Altri branch git
+
+Se la cartella delle immagini si trova in un repository git, **Branch…** diventa
+disponibile. Spunta i branch che ti servono e premi **Indicizza**: le loro
+immagini vengono lette direttamente dal repository, quindi non viene fatto alcun
+checkout e il tuo albero di lavoro resta intatto. Il branch su cui sei non
+compare nell'elenco: è *lui* l'albero di lavoro.
+
+L'elenco dei branch è il quadro completo di ciò che l'indice contiene. Togliere
+la spunta e indicizzare di nuovo lo rimuove.
+
+I risultati che vengono da un branch mostrano il nome del branch e si presentano
+come `branch:percorso` invece che come percorso di file, perché quel file sul
+disco non esiste. **Apri** estrae quella versione in un file temporaneo così puoi
+guardarla; mostrarla nel gestore file e cercare con essa valgono solo per i file
+dell'albero di lavoro.
+
+Reindicizzare costa poco: un branch la cui punta non si è mossa viene saltato del
+tutto, e dentro un branch vengono riletti solo i file il cui contenuto è
+davvero cambiato.
+
+> **Git LFS**: le immagini vengono risolte dal tuo archivio LFS locale. Se un
+> branch non è mai stato scaricato, ImageWorker dice quanti oggetti mancano e che
+> `git lfs fetch --all` li recupera: da solo non scarica nulla.
+
+---
+
+## 6. Temi e lingua
 
 **Visualizza → Tema** passa tra Sistema, Sci-fi, Material e Fiorito mentre il
 programma è in esecuzione. La scelta viene ricordata.

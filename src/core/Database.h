@@ -261,6 +261,17 @@ private:
      */
     bool migrateToRefs(QString *error);
 
+    /**
+     * @brief Fix tables left pointing at a table that no longer exists.
+     * @param error Optional out-parameter receiving a failure description.
+     * @return @c true when nothing needed fixing or the fix succeeded.
+     *
+     * A rename-first migration made @c thumbs and @c features reference
+     * @c files_v1, which the same migration then dropped. Nothing complains
+     * until something writes to those tables, so the repair runs on open.
+     */
+    bool repairDanglingReferences(QString *error);
+
     bool prepareStatements(QString *error);
 
     QString      m_connectionName;

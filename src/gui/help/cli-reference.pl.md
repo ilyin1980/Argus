@@ -67,6 +67,31 @@ Podaj `--roi x,y,w,h`, gdy wiesz, gdzie jest obiekt. To najskuteczniejsza opcja
 ze wszystkich: na zaznaczonym obszarze wyszukiwanie jest około pięć razy szybsze
 i znajduje mniej więcej dwa razy więcej pasujących punktów.
 
+### Inne gałęzie git
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+Obrazy są czytane z magazynu obiektów, więc nic nie jest wyewidencjonowywane, a
+katalog roboczy pozostaje nietknięty. Podany zbiór jest zbiorem pełnym: gałąź
+zindeksowana wcześniej i teraz niewymieniona wypada z indeksu. `--branches all`
+bierze wszystkie gałęzie lokalne, a `--remote-branches` dokłada zdalne.
+
+Ponowne indeksowanie jest tanie. Gałąź z nieruszonym czubkiem jest pomijana bez
+wypisywania drzewa, a wewnątrz gałęzi rozstrzyga identyfikator blobu — adres
+treści, czyli mocniejsze sprawdzenie niż rozmiar i czas modyfikacji używane dla
+plików.
+
+Wiersze pochodzące z gałęzi nigdy nie podają ścieżki w systemie plików, bo takiej
+nie ma. Zwykłe wyjście i `--paths` wypisują własną składnię git `gałąź:ścieżka`,
+którą przyjmuje `git show`; `--json` niesie `ref`, `blob` i `rev` zamiast `path`.
+
+Przy Git LFS obiekty są rozwiązywane z lokalnego magazynu LFS. Brakujące są
+liczone i zgłaszane raz, z `git lfs fetch --all` jako lekarstwem; nic nie jest
+pobierane z własnej inicjatywy.
+
 ### Potoki
 
 ```

@@ -64,6 +64,30 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 객체가 어디 있는지 안다면 `--roi x,y,w,h`를 넘기세요. 무엇보다 효과가 큰 옵션입니다.
 지정한 영역에서는 검색이 약 다섯 배 빠르고, 일치하는 점은 대략 두 배 나옵니다.
 
+### 다른 git 브랜치
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+이미지는 객체 저장소에서 읽으므로 체크아웃이 일어나지 않고 작업 트리도 그대로
+있습니다. 지정한 집합이 곧 완전한 집합입니다. 전에 색인했지만 이번에 이름을 대지
+않은 브랜치는 색인에서 빠집니다. `--branches all`은 모든 로컬 브랜치를,
+`--remote-branches`는 원격 추적 브랜치까지 포함합니다.
+
+다시 색인하는 비용은 적습니다. 끝이 움직이지 않은 브랜치는 트리를 하나도 나열하지
+않고 건너뛰며, 브랜치 안에서는 blob 아이디가 판단 기준입니다. 내용 주소이므로
+파일에 쓰는 크기와 수정 시각보다 강한 확인입니다.
+
+브랜치에서 나온 행은 파일 시스템 경로를 결코 알려 주지 않습니다. 그런 경로가 없기
+때문입니다. 보통 출력과 `--paths`는 git 자체의 `브랜치:경로` 문법을 쓰며 `git
+show`가 그대로 받습니다. `--json`은 `path` 대신 `ref`, `blob`, `rev`를 담습니다.
+
+Git LFS에서는 객체를 로컬 LFS 저장소에서 가져옵니다. 없는 것은 세어서 한 번만
+알리고, 해결책으로 `git lfs fetch --all`을 제시합니다. 스스로 내려받는 일은
+없습니다.
+
 ### 파이프
 
 ```

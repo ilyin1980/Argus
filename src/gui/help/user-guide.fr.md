@@ -114,7 +114,34 @@ Chaque résultat porte son chemin complet :
 
 ---
 
-## 5. Thèmes et langue
+## 5. Les autres branches git
+
+Si le dossier d'images se trouve dans un dépôt git, **Branches…** devient
+disponible. Cochez les branches voulues et appuyez sur **Indexer** : leurs images
+sont lues directement dans le dépôt, rien n'est extrait et votre copie de travail
+n'est jamais touchée. La branche que vous avez extraite ne figure pas dans la
+liste — elle *est* la copie de travail.
+
+La liste des branches décrit exactement ce que contient l'index. Décocher une
+branche et réindexer la retire.
+
+Les résultats venant d'une branche affichent son nom et s'identifient par
+`branche:chemin` plutôt que par un chemin de fichier, car ce fichier n'existe pas
+sur le disque. **Ouvrir** extrait cette version dans un fichier temporaire pour
+que vous puissiez la regarder ; l'afficher dans le gestionnaire de fichiers et
+chercher avec elle ne valent que pour les fichiers de la copie de travail.
+
+Réindexer coûte peu : une branche dont la pointe n'a pas bougé est entièrement
+sautée, et à l'intérieur d'une branche seuls les fichiers dont le contenu a
+réellement changé sont relus.
+
+> **Git LFS** : les images proviennent de votre dépôt LFS local. Si une branche
+> n'a jamais été récupérée, ImageWorker indique combien d'objets manquent et que
+> `git lfs fetch --all` les rapatrie — il ne télécharge jamais rien de lui-même.
+
+---
+
+## 6. Thèmes et langue
 
 **Affichage → Thème** bascule entre Système, Sci-fi, Material et Floraison
 pendant que le programme tourne. Le choix est retenu.

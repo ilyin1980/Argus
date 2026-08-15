@@ -63,6 +63,28 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 当你知道对象大致在哪里时，请传入 `--roi x,y,w,h`。这是最有效的选项：在框定区域上
 搜索大约快五倍，并且找到的匹配点大约多一倍。
 
+### 其他 git 分支
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+图片从对象库中读取，因此不会检出任何内容，工作区保持原样。所列出的集合就是完整
+集合：之前索引过、这次没有列出的分支会从索引中移除。`--branches all` 取所有本地
+分支，`--remote-branches` 再加上远程跟踪分支。
+
+重新建立索引的代价很低。顶端没有移动的分支会被跳过，连一棵树都不会列出；在分支
+内部，由 blob 标识决定是否变化 —— 它是内容地址，因此比文件所用的大小与修改时间更
+可靠。
+
+来自分支的记录绝不会给出文件系统路径，因为并不存在。普通输出与 `--paths` 会写出
+git 自己的 `分支:路径` 语法，`git show` 可以直接接受；`--json` 则以 `ref`、`blob`
+和 `rev` 取代 `path`。
+
+在 Git LFS 下，对象从本地 LFS 存储中解析。缺失的对象会被统计并只报告一次，并给出
+`git lfs fetch --all` 作为解决办法；绝不会自行下载任何内容。
+
 ### 管道
 
 ```

@@ -70,6 +70,33 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 Abstand wirksamste Option: auf einem eingerahmten Bereich ist die Suche etwa
 fünfmal schneller und findet ungefähr doppelt so viele passende Punkte.
 
+### Andere Git-Branches
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+Die Bilder werden aus dem Objektspeicher gelesen, es wird also nichts
+ausgecheckt und der Arbeitsbaum bleibt unangetastet. Die genannte Menge ist die
+vollständige Menge: ein früher indizierter und jetzt nicht genannter Branch fällt
+aus dem Index. `--branches all` nimmt jeden lokalen Branch, `--remote-branches`
+fügt die Remote-Tracking-Branches hinzu.
+
+Erneutes Indizieren ist billig. Ein Branch mit unbewegter Spitze wird
+übersprungen, ohne einen Baum aufzulisten, und innerhalb eines Branches
+entscheidet die Blob-Id — eine Inhaltsadresse und damit eine stärkere Prüfung als
+Größe und Änderungszeit bei Dateien.
+
+Zeilen aus einem Branch melden nie einen Dateisystempfad, weil es keinen gibt.
+Die normale Ausgabe und `--paths` schreiben Gits eigene `branch:pfad`-Syntax, die
+`git show` akzeptiert; `--json` trägt statt `path` die Felder `ref`, `blob` und
+`rev`.
+
+Unter Git LFS werden die Objekte aus dem lokalen LFS-Speicher aufgelöst. Fehlende
+werden gezählt und einmal gemeldet, mit `git lfs fetch --all` als Abhilfe; von
+selbst wird nie etwas heruntergeladen.
+
 ### Weiterleiten
 
 ```

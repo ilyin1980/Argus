@@ -104,7 +104,33 @@ Every result carries the full path:
 
 ---
 
-## 5. Themes and language
+## 5. Other git branches
+
+If the image folder is inside a git repository, **Branches…** becomes available.
+Tick the branches you want and press **Index**: their images are read straight
+out of the repository, so nothing is checked out and your working tree is never
+touched. The branch you have checked out is not listed — it *is* the working
+tree.
+
+The branch list is the complete picture of what the index holds. Unticking a
+branch and indexing again removes it.
+
+Results from a branch show the branch name and identify themselves as
+`branch:path` rather than as a file path, because there is no such file on disk.
+**Open** extracts that version to a temporary file so you can look at it;
+revealing it in a file manager, and searching with it, are only for files in the
+working tree.
+
+Re-indexing is cheap: a branch whose tip has not moved is skipped entirely, and
+within a branch only files whose content actually changed are re-read.
+
+> **Git LFS**: the images are resolved from your local LFS store. If a branch
+> was never fetched, ImageWorker says how many objects are missing and that
+> `git lfs fetch --all` will get them — it never downloads anything by itself.
+
+---
+
+## 6. Themes and language
 
 **View → Theme** switches between System, Sci-fi, Material and Blossom while the
 program is running. The choice is remembered.

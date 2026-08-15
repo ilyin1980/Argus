@@ -67,6 +67,31 @@ Pass `--roi x,y,w,h` when you know where the object is. It is the single most
 effective option: on a boxed region the search is about five times faster and
 finds roughly twice as many matching points.
 
+### Other git branches
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+Images are read out of the object store, so nothing is checked out and the
+working tree is untouched. The named set is the complete set: a branch indexed
+earlier and not named again is dropped from the index. `--branches all` takes
+every local branch, and `--remote-branches` adds the remote-tracking ones.
+
+Re-indexing is cheap. A branch whose tip has not moved is skipped without
+listing a tree, and within a branch the blob id decides what changed — a content
+address, so it is a stronger check than the size and mtime used for files.
+
+Rows that came out of a branch never report a filesystem path, because there is
+no such file. Plain output and `--paths` print git's own `branch:path` syntax,
+which `git show` accepts; `--json` carries `ref`, `blob` and `rev` instead of
+`path`.
+
+Under Git LFS the objects are resolved from the local LFS store. Missing objects
+are counted and reported once, with `git lfs fetch --all` as the fix; nothing is
+ever downloaded on its own.
+
 ### Piping
 
 ```

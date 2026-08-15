@@ -106,7 +106,31 @@ Her sonuç tam yolunu taşır:
 
 ---
 
-## 5. Temalar ve dil
+## 5. Diğer git dalları
+
+Görsel klasörü bir git deposunun içindeyse **Dallar…** düğmesi etkinleşir.
+İstediğiniz dalları işaretleyip **Dizinle**'ye basın: görselleri doğrudan
+depodan okunur, yani hiçbir şey checkout edilmez ve çalışma ağacınıza
+dokunulmaz. Üzerinde bulunduğunuz dal listede yoktur — o zaten çalışma ağacıdır.
+
+Dal listesi, dizinin neyi içerdiğinin tam resmidir. Bir dalın işaretini kaldırıp
+yeniden dizinlemek onu dizinden çıkarır.
+
+Bir daldan gelen sonuçlar dal adını gösterir ve dosya yolu yerine `dal:yol`
+biçiminde kendini tanıtır; çünkü diskte öyle bir dosya yoktur. **Aç**, o sürümü
+geçici bir dosyaya çıkarır, böylece ona bakabilirsiniz; dosya yöneticisinde
+gösterme ve onunla arama yalnızca çalışma ağacındaki dosyalar içindir.
+
+Yeniden dizinleme ucuzdur: ucu kıpırdamamış bir dal bütünüyle atlanır ve bir dal
+içinde yalnızca içeriği gerçekten değişen dosyalar yeniden okunur.
+
+> **Git LFS**: görseller yerel LFS deponuzdan çözülür. Bir dal hiç çekilmemişse
+> ImageWorker kaç nesnenin eksik olduğunu ve bunları `git lfs fetch --all`
+> komutunun getireceğini söyler — kendiliğinden hiçbir şey indirmez.
+
+---
+
+## 6. Temalar ve dil
 
 **Görünüm → Tema**, program çalışırken Sistem, Sci-fi, Material ve Çiçek arasında
 geçiş yapar. Seçim hatırlanır.

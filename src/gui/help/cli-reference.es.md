@@ -70,6 +70,32 @@ Pase `--roi x,y,w,h` cuando sepa dónde está el objeto. Es la opción más efic
 todas: sobre una región recuadrada la búsqueda es unas cinco veces más rápida y
 encuentra aproximadamente el doble de puntos coincidentes.
 
+### Otras ramas de git
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+Las imágenes se leen del almacén de objetos, así que no se extrae nada y el árbol
+de trabajo queda intacto. El conjunto indicado es el conjunto completo: una rama
+indexada antes y no nombrada ahora sale del índice. `--branches all` toma todas
+las ramas locales y `--remote-branches` añade las de seguimiento remoto.
+
+Reindexar sale barato. Una rama cuya punta no se ha movido se omite sin listar
+ningún árbol, y dentro de una rama decide el identificador del blob: una
+dirección por contenido, o sea una comprobación más firme que el tamaño y la
+fecha que se usan para los archivos.
+
+Las filas que vienen de una rama nunca informan de una ruta del sistema de
+archivos, porque no existe. La salida normal y `--paths` escriben la sintaxis
+`rama:ruta` propia de git, que `git show` acepta; `--json` lleva `ref`, `blob` y
+`rev` en lugar de `path`.
+
+Con Git LFS los objetos se resuelven desde el almacén LFS local. Los que falten
+se cuentan y se informan una sola vez, con `git lfs fetch --all` como solución;
+nunca se descarga nada por iniciativa propia.
+
 ### Encadenar
 
 ```

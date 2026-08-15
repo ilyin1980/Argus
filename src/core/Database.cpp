@@ -179,6 +179,32 @@ bool Database::applySchema(QString *error)
     return true;
 }
 
+namespace {
+
+/** @brief The current definition of the files table, used by migrations too. */
+const char *kFilesTableSql =
+    "CREATE TABLE %1 ("
+    "  id           INTEGER PRIMARY KEY,"
+    "  rel          TEXT    NOT NULL,"
+    "  ref          TEXT    NOT NULL DEFAULT '',"
+    "  blob         TEXT    NOT NULL DEFAULT '',"
+    "  size         INTEGER NOT NULL,"
+    "  mtime        INTEGER NOT NULL,"
+    "  width        INTEGER NOT NULL DEFAULT 0,"
+    "  height       INTEGER NOT NULL DEFAULT 0,"
+    "  content_hash BLOB,"
+    "  chash64      INTEGER NOT NULL DEFAULT 0,"
+    "  phash        INTEGER NOT NULL DEFAULT 0,"
+    "  dhash        INTEGER NOT NULL DEFAULT 0,"
+    "  b0           INTEGER NOT NULL DEFAULT 0,"
+    "  b1           INTEGER NOT NULL DEFAULT 0,"
+    "  b2           INTEGER NOT NULL DEFAULT 0,"
+    "  b3           INTEGER NOT NULL DEFAULT 0,"
+    "  status       INTEGER NOT NULL DEFAULT 0,"
+    "  indexed_at   INTEGER NOT NULL DEFAULT 0)";
+
+} // namespace
+
 bool Database::migrateToRefs(QString *error)
 {
     QSqlQuery query(m_db);
@@ -187,70 +213,151 @@ bool Database::migrateToRefs(QString *error)
     if (!query.exec(QStringLiteral("SELECT name FROM sqlite_master"
                                    " WHERE type='table' AND name='files'")))
         return fail(error, query, "inspect schema");
-    if (!query.next())
-        return true;
+    const bool hasFiles = query.next();
     query.finish();
 
-    if (!query.exec(QStringLiteral("PRAGMA table_info(files)")))
-        return fail(error, query, "inspect files");
     bool hasRef = false;
-    while (query.next()) {
-        if (query.value(1).toString() == QLatin1String("ref"))
-            hasRef = true;
+    if (hasFiles) {
+        if (!query.exec(QStringLiteral("PRAGMA table_info(files)")))
+            return fail(error, query, "inspect files");
+        while (query.next()) {
+            if (query.value(1).toString() == QLatin1String("ref"))
+                hasRef = true;
+        }
+        query.finish();
     }
-    query.finish();
-    if (hasRef)
-        return true;
 
-    // The old table declared `rel` UNIQUE as a column constraint, and SQLite
-    // cannot drop a column constraint in place. Rebuilding the table is the
-    // only route; ids are carried across so descriptors and previews, which
-    // reference them, survive untouched.
-    static const char *migration[] = {
-        "ALTER TABLE files RENAME TO files_v1",
-        "CREATE TABLE files ("
-        "  id           INTEGER PRIMARY KEY,"
-        "  rel          TEXT    NOT NULL,"
-        "  ref          TEXT    NOT NULL DEFAULT '',"
-        "  blob         TEXT    NOT NULL DEFAULT '',"
-        "  size         INTEGER NOT NULL,"
-        "  mtime        INTEGER NOT NULL,"
-        "  width        INTEGER NOT NULL DEFAULT 0,"
-        "  height       INTEGER NOT NULL DEFAULT 0,"
-        "  content_hash BLOB,"
-        "  chash64      INTEGER NOT NULL DEFAULT 0,"
-        "  phash        INTEGER NOT NULL DEFAULT 0,"
-        "  dhash        INTEGER NOT NULL DEFAULT 0,"
-        "  b0           INTEGER NOT NULL DEFAULT 0,"
-        "  b1           INTEGER NOT NULL DEFAULT 0,"
-        "  b2           INTEGER NOT NULL DEFAULT 0,"
-        "  b3           INTEGER NOT NULL DEFAULT 0,"
-        "  status       INTEGER NOT NULL DEFAULT 0,"
-        "  indexed_at   INTEGER NOT NULL DEFAULT 0)",
-        "INSERT INTO files"
-        " (id,rel,ref,blob,size,mtime,width,height,content_hash,chash64,"
-        "  phash,dhash,b0,b1,b2,b3,status,indexed_at)"
-        " SELECT id,rel,'','',size,mtime,width,height,content_hash,chash64,"
-        "        phash,dhash,b0,b1,b2,b3,status,indexed_at FROM files_v1",
-        "DROP TABLE files_v1",
-    };
+    if (hasFiles && !hasRef) {
+        // The old table declared `rel` UNIQUE as a column constraint, and SQLite
+        // cannot drop a column constraint in place, so the table is rebuilt.
+        //
+        // The order below is SQLite's documented one, and it is not
+        // interchangeable: build the new table, copy, drop the old, rename.
+        // Renaming the *old* table out of the way first looks equivalent and is
+        // not - since 3.25 a rename rewrites references to it in other tables,
+        // so `thumbs` and `features` would silently start pointing at a table
+        // that the next statement deletes. That mistake got as far as a
+        // "no such table: main.files_v1" from an unrelated INSERT.
+        //
+        // Ids are carried across, so previews and descriptors, which reference
+        // them, survive untouched.
+        static const char *migration[] = {
+            "INSERT INTO files_new"
+            " (id,rel,ref,blob,size,mtime,width,height,content_hash,chash64,"
+            "  phash,dhash,b0,b1,b2,b3,status,indexed_at)"
+            " SELECT id,rel,'','',size,mtime,width,height,content_hash,chash64,"
+            "        phash,dhash,b0,b1,b2,b3,status,indexed_at FROM files",
+            "DROP TABLE files",
+            "ALTER TABLE files_new RENAME TO files",
+        };
 
-    if (!m_db.transaction()) {
-        if (error)
-            *error = m_db.lastError().text();
-        return false;
-    }
-    for (const char *sql : migration) {
-        if (!query.exec(QLatin1String(sql))) {
+        // Foreign keys must be off across a table rebuild, and the pragma is a
+        // no-op inside a transaction, so it goes first.
+        query.exec(QStringLiteral("PRAGMA foreign_keys=OFF"));
+
+        if (!m_db.transaction()) {
+            if (error)
+                *error = m_db.lastError().text();
+            return false;
+        }
+        bool ok = query.exec(QString::fromLatin1(kFilesTableSql)
+                                 .arg(QStringLiteral("files_new")));
+        for (const char *sql : migration) {
+            if (!ok)
+                break;
+            ok = query.exec(QLatin1String(sql));
+        }
+        if (!ok) {
             const bool failed = fail(error, query, "migrate to refs");
             m_db.rollback();
+            query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
             return failed;
         }
+        if (!m_db.commit()) {
+            if (error)
+                *error = m_db.lastError().text();
+            query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+            return false;
+        }
+        query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
     }
-    if (!m_db.commit()) {
-        if (error)
-            *error = m_db.lastError().text();
-        return false;
+
+    return repairDanglingReferences(error);
+}
+
+bool Database::repairDanglingReferences(QString *error)
+{
+    // Databases migrated by the first version of the code above have `thumbs`
+    // and `features` pointing at a table that no longer exists, which only
+    // surfaces when something writes to them. Rebuilding the two tables keeps
+    // every row and costs nothing on a healthy database, where the loop below
+    // finds nothing to do.
+    struct Broken { const char *name; const char *create; const char *columns; };
+    static const Broken tables[] = {
+        { "thumbs",
+          "CREATE TABLE %1 ("
+          "  file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE,"
+          "  data    BLOB NOT NULL)",
+          "file_id,data" },
+        { "features",
+          "CREATE TABLE %1 ("
+          "  file_id  INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE,"
+          "  model    TEXT    NOT NULL,"
+          "  count    INTEGER NOT NULL,"
+          "  dim      INTEGER NOT NULL,"
+          "  img_w    INTEGER NOT NULL,"
+          "  img_h    INTEGER NOT NULL,"
+          "  desc_off INTEGER NOT NULL,"
+          "  kpts_off INTEGER NOT NULL)",
+          "file_id,model,count,dim,img_w,img_h,desc_off,kpts_off" },
+    };
+
+    QSqlQuery query(m_db);
+    for (const Broken &table : tables) {
+        query.prepare(QStringLiteral("SELECT sql FROM sqlite_master"
+                                     " WHERE type='table' AND name=:name"));
+        query.bindValue(QStringLiteral(":name"), QLatin1String(table.name));
+        if (!query.exec() || !query.next())
+            continue;
+        const QString sql = query.value(0).toString();
+        query.finish();
+        if (!sql.contains(QLatin1String("files_v1")))
+            continue;
+
+        const QString temp = QLatin1String(table.name) + QStringLiteral("_fixed");
+        query.exec(QStringLiteral("PRAGMA foreign_keys=OFF"));
+        if (!m_db.transaction()) {
+            if (error)
+                *error = m_db.lastError().text();
+            return false;
+        }
+
+        bool ok = query.exec(QString::fromLatin1(table.create).arg(temp));
+        if (ok) {
+            ok = query.exec(QStringLiteral("INSERT INTO %1 (%2) SELECT %2 FROM %3")
+                                .arg(temp, QLatin1String(table.columns),
+                                     QLatin1String(table.name)));
+        }
+        if (ok)
+            ok = query.exec(QStringLiteral("DROP TABLE %1").arg(QLatin1String(table.name)));
+        if (ok) {
+            ok = query.exec(QStringLiteral("ALTER TABLE %1 RENAME TO %2")
+                                .arg(temp, QLatin1String(table.name)));
+        }
+
+        if (!ok) {
+            const bool failed = fail(error, query, "repair references");
+            m_db.rollback();
+            query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+            return failed;
+        }
+        if (!m_db.commit()) {
+            if (error)
+                *error = m_db.lastError().text();
+            query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+            return false;
+        }
+        query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
     }
     return true;
 }

@@ -68,6 +68,32 @@ Nesnenin nerede olduğunu biliyorsanız `--roi x,y,w,h` verin. En etkili seçene
 budur: çerçevelenmiş bir bölgede arama yaklaşık beş kat hızlanır ve kabaca iki
 katı eşleşen nokta bulur.
 
+### Diğer git dalları
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+Görseller nesne deposundan okunur; hiçbir şey checkout edilmez ve çalışma ağacına
+dokunulmaz. Belirtilen küme tam kümedir: daha önce dizinlenmiş ve şimdi
+adı geçmeyen bir dal dizinden düşer. `--branches all` bütün yerel dalları alır,
+`--remote-branches` ise uzak izleme dallarını ekler.
+
+Yeniden dizinleme ucuzdur. Ucu kıpırdamamış bir dal, tek bir ağaç bile
+listelenmeden atlanır; bir dal içinde ise kararı blob kimliği verir — içerik
+adresi olduğundan, dosyalar için kullanılan boyut ve tarihten daha güçlü bir
+denetimdir.
+
+Bir daldan gelen satırlar hiçbir zaman dosya sistemi yolu bildirmez, çünkü öyle
+bir yol yoktur. Normal çıktı ve `--paths`, `git show`'un kabul ettiği kendi
+`dal:yol` sözdizimini yazar; `--json` ise `path` yerine `ref`, `blob` ve `rev`
+taşır.
+
+Git LFS altında nesneler yerel LFS deposundan çözülür. Eksik olanlar sayılır ve
+bir kez bildirilir; çaresi `git lfs fetch --all`'dır. Kendiliğinden hiçbir şey
+indirilmez.
+
 ### Boru hattı
 
 ```

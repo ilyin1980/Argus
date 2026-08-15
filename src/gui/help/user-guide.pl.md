@@ -105,7 +105,34 @@ Każdy wynik niesie pełną ścieżkę:
 
 ---
 
-## 5. Motywy i język
+## 5. Inne gałęzie git
+
+Jeśli katalog z obrazami leży w repozytorium git, przycisk **Gałęzie…** staje się
+dostępny. Zaznacz potrzebne gałęzie i naciśnij **Indeksuj**: ich obrazy są
+czytane wprost z repozytorium, więc nic nie jest wyewidencjonowywane, a twój
+katalog roboczy pozostaje nietknięty. Gałęzi, na której jesteś, nie ma na liście —
+to *ona* jest katalogiem roboczym.
+
+Lista gałęzi to pełny obraz tego, co zawiera indeks. Odznaczenie gałęzi i
+ponowne zindeksowanie usuwa ją.
+
+Wyniki z gałęzi pokazują jej nazwę i przedstawiają się jako `gałąź:ścieżka`, a
+nie jako ścieżka pliku, bo takiego pliku na dysku nie ma. **Otwórz** wypakowuje
+tę wersję do pliku tymczasowego, żeby dało się ją obejrzeć; pokazanie w
+menedżerze plików i szukanie za jej pomocą dotyczą tylko plików z katalogu
+roboczego.
+
+Ponowne indeksowanie jest tanie: gałąź, której czubek się nie przesunął, jest
+pomijana w całości, a wewnątrz gałęzi ponownie czytane są tylko pliki, których
+zawartość naprawdę się zmieniła.
+
+> **Git LFS**: obrazy pochodzą z twojego lokalnego magazynu LFS. Jeśli gałąź
+> nigdy nie została pobrana, ImageWorker poda, ilu obiektów brakuje, i że
+> `git lfs fetch --all` je sprowadzi — sam niczego nie pobiera.
+
+---
+
+## 6. Motywy i język
 
 **Widok → Motyw** przełącza między Systemowym, Sci-fi, Material i Kwiatowym w
 trakcie działania programu. Wybór jest zapamiętywany.

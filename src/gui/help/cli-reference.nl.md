@@ -71,6 +71,33 @@ Geef `--roi x,y,w,h` mee wanneer u weet waar het object zit. Het is verreweg de
 doeltreffendste optie: op een ingekaderd gebied is het zoeken ongeveer vijf keer
 sneller en vindt het ruwweg twee keer zoveel overeenkomende punten.
 
+### Andere git-branches
+
+```
+imageworker index D:/game/Assets --branches all
+imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+```
+
+De afbeeldingen worden uit de objectopslag gelezen, er wordt dus niets uitgecheckt
+en de werkmap blijft ongemoeid. De genoemde verzameling is de volledige
+verzameling: een branch die eerder is geïndexeerd en nu niet wordt genoemd,
+verdwijnt uit de index. `--branches all` neemt elke lokale branch, en
+`--remote-branches` voegt de remote-tracking branches toe.
+
+Opnieuw indexeren kost weinig. Een branch met een onveranderde tip wordt
+overgeslagen zonder ook maar één boom op te vragen, en binnen een branch beslist
+de blob-id: een inhoudsadres, en dus een sterkere controle dan de grootte en
+wijzigingstijd die voor bestanden gelden.
+
+Rijen uit een branch melden nooit een pad in het bestandssysteem, want dat is er
+niet. De gewone uitvoer en `--paths` schrijven gits eigen `branch:pad`-syntaxis,
+die `git show` aanvaardt; `--json` draagt `ref`, `blob` en `rev` in plaats van
+`path`.
+
+Onder Git LFS worden de objecten uit de lokale LFS-opslag opgelost. Ontbrekende
+worden geteld en één keer gemeld, met `git lfs fetch --all` als oplossing; er
+wordt nooit uit zichzelf iets gedownload.
+
 ### Doorsluizen
 
 ```
