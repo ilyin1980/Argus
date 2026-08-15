@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>820</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>ImageWorker</string>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="centralLayout">
+    <property name="spacing">
+     <number>8</number>
+    </property>
+    <property name="leftMargin">
+     <number>8</number>
+    </property>
+    <property name="topMargin">
+     <number>8</number>
+    </property>
+    <property name="rightMargin">
+     <number>8</number>
+    </property>
+    <property name="bottomMargin">
+     <number>8</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="toolbar" native="true">
+      <layout class="QGridLayout" name="toolbarLayout" columnstretch="0,1,0,0,0,0">
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+       <item row="0" column="0">
+        <widget class="QLabel" name="imagesLabel">
+         <property name="text">
+          <string>Images:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QLineEdit" name="rootEdit">
+         <property name="placeholderText">
+          <string>Directory with png / jpg files</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QPushButton" name="browseRootButton">
+         <property name="text">
+          <string>Browse…</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3">
+        <widget class="QPushButton" name="indexButton">
+         <property name="text">
+          <string>&amp;Index</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="4">
+        <widget class="QPushButton" name="cancelButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Cancel</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="storageLabel">
+         <property name="text">
+          <string>Index in:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="storageEdit">
+         <property name="toolTip">
+          <string>Directory holding the index database, previews and descriptors.
+Defaults to .imageworker inside the image folder; point it elsewhere to
+keep a read-only or network share untouched, or to put the index on a
+faster disk.</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QPushButton" name="browseStorageButton">
+         <property name="text">
+          <string>Browse…</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3">
+        <widget class="QPushButton" name="defaultStorageButton">
+         <property name="toolTip">
+          <string>Put the index back inside the image folder.</string>
+         </property>
+         <property name="text">
+          <string>Default</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="5">
+        <widget class="QCheckBox" name="featuresCheck">
+         <property name="toolTip">
+          <string>Also build the neural descriptors that let ImageWorker locate an
+asset inside a screenshot. Roughly doubles indexing time and adds
+about 40 KB per image; without them only duplicate detection and
+whole-image similarity work.</string>
+         </property>
+         <property name="text">
+          <string>Object search data</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="4" colspan="2">
+        <widget class="ScanProgressBar" name="progress">
+         <property name="minimumSize">
+          <size>
+           <width>220</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="value">
+          <number>0</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QTabWidget" name="tabs">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="duplicatesTab">
+       <attribute name="title">
+        <string>Duplicates</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="duplicatesLayout">
+        <item>
+         <layout class="QHBoxLayout" name="duplicatesControls">
+          <item>
+           <widget class="QLabel" name="distanceLabel">
+            <property name="text">
+             <string>Max distance:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSpinBox" name="distanceSpin">
+            <property name="toolTip">
+             <string>Hamming radius on the 64-bit perceptual hash.
+0 = identical fingerprints, 4 = tolerant of re-encoding and rescaling.
+Above 8 the results are for review, not for deletion: perceptual hashing
+describes layout, so one character with several expressions groups together.</string>
+            </property>
+            <property name="maximum">
+             <number>64</number>
+            </property>
+            <property name="value">
+             <number>4</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="exactCheck">
+            <property name="text">
+             <string>Exact</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="nearCheck">
+            <property name="text">
+             <string>Near</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="findButton">
+            <property name="text">
+             <string>&amp;Find duplicates</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="duplicatesSpacer">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QSplitter" name="duplicatesSplitter">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <widget class="QListWidget" name="groupList">
+           <property name="minimumSize">
+            <size>
+             <width>260</width>
+             <height>0</height>
+            </size>
+           </property>
+          </widget>
+          <widget class="QListView" name="groupView"/>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="queryTab">
+       <attribute name="title">
+        <string>Find by example</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="queryLayout">
+        <item>
+         <layout class="QHBoxLayout" name="queryTop">
+          <item>
+           <widget class="QueryImageView" name="queryImage" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>320</width>
+              <height>240</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="querySide">
+            <item>
+             <layout class="QHBoxLayout" name="queryPathRow">
+              <item>
+               <widget class="QLineEdit" name="queryEdit">
+                <property name="placeholderText">
+                 <string>Reference image, drop one, or paste with Ctrl+V</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="browseQueryButton">
+                <property name="text">
+                 <string>Browse…</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="pasteButton">
+                <property name="text">
+                 <string>Paste</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <widget class="QLabel" name="queryHint">
+              <property name="text">
+               <string>No reference image yet.</string>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="queryKnobs">
+              <item>
+               <widget class="QLabel" name="methodLabel">
+                <property name="text">
+                 <string>Method:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="methodCombo"/>
+              </item>
+              <item>
+               <widget class="QLabel" name="topLabel">
+                <property name="text">
+                 <string>Top:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="topSpin">
+                <property name="minimum">
+                 <number>1</number>
+                </property>
+                <property name="maximum">
+                 <number>5000</number>
+                </property>
+                <property name="value">
+                 <number>20</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="maxDistLabel">
+                <property name="text">
+                 <string>Max distance:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QSpinBox" name="maxDistSpin">
+                <property name="toolTip">
+                 <string>Combined pHash + dHash distance, 0..128.
+Perceptual hashing finds the same picture, not merely a similar subject.
+Below about 16 the hits are the same picture re-encoded or rescaled.
+Above 30 they are effectively random, whatever the score suggests.</string>
+                </property>
+                <property name="maximum">
+                 <number>128</number>
+                </property>
+                <property name="value">
+                 <number>16</number>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="searchButton">
+                <property name="text">
+                 <string>&amp;Search</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="queryKnobsSpacer">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="querySideSpacer">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QListView" name="queryView"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="pathBar">
+      <item>
+       <widget class="QLabel" name="pathLabel">
+        <property name="text">
+         <string>Path:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLineEdit" name="pathEdit">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+        <property name="placeholderText">
+         <string>Select a result to see its full path</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="pathCount">
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="copyButton">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="toolTip">
+         <string>Copy the full path of every selected result, one per line.</string>
+        </property>
+        <property name="text">
+         <string>&amp;Copy</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QueryImageView</class>
+   <extends>QWidget</extends>
+   <header>QueryImageView.h</header>
+   <container>0</container>
+  </customwidget>
+  <customwidget>
+   <class>ScanProgressBar</class>
+   <extends>QProgressBar</extends>
+   <header>ScanProgressBar.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

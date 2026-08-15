@@ -1,0 +1,49 @@
+# Doxygen configuration for ImageWorker.
+# Run:  doxygen Doxyfile      Output: build/doc/html/index.html
+
+PROJECT_NAME           = "ImageWorker"
+PROJECT_BRIEF          = "Duplicate and similar image finder"
+PROJECT_NUMBER         = 0.1.0
+
+INPUT                  = src README.md
+USE_MDFILE_AS_MAINPAGE = README.md
+RECURSIVE              = YES
+FILE_PATTERNS          = *.h *.cpp *.md
+
+OUTPUT_DIRECTORY       = build/doc
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+HTML_OUTPUT            = html
+
+# Document everything, including the private members that carry the design
+# rationale, and the static helpers inside .cpp files.
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = YES
+EXTRACT_STATIC         = YES
+EXTRACT_LOCAL_CLASSES  = YES
+
+JAVADOC_AUTOBRIEF      = YES
+QT_AUTOBRIEF           = YES
+MARKDOWN_SUPPORT       = YES
+AUTOLINK_SUPPORT       = YES
+
+SORT_MEMBER_DOCS       = NO
+SORT_BRIEF_DOCS        = NO
+
+# Qt's moc keywords would otherwise confuse the parser.
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+EXPAND_ONLY_PREDEF     = YES
+PREDEFINED             = Q_OBJECT= \
+                         Q_SIGNALS=public \
+                         Q_SLOTS= \
+                         signals=public \
+                         slots= \
+                         Q_DECL_OVERRIDE=override \
+                         IMAGEWORKER_VERSION="0.1.0"
+
+EXCLUDE_PATTERNS       = */build/* */moc_* */qrc_* */ui_*
+
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = YES
+QUIET                  = YES

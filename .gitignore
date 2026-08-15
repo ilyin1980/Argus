@@ -1,0 +1,29 @@
+# Build output
+build/
+build-*/
+.cache/
+CMakeUserPresets.json
+compile_commands.json
+
+# IDE
+*.user
+*.user.*
+.vscode/
+.idea/
+
+# Vendored binaries: fetched, not authored. See README "Third-party layout".
+third_party/
+
+# Model weights, downloaded separately. See README for the exact releases.
+models/
+
+# Generated indexes: databases, previews, descriptors, vocabularies.
+indexes/
+.imageworker/
+
+# Regenerate with tools/make-test-screenshot.ps1
+testdata/
+
+# Doxygen output
+doc/
+dist/
