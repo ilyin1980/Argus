@@ -1,22 +1,35 @@
 # Doxygen configuration for ImageWorker.
-# Run:  doxygen Doxyfile      Output: build/doc/html/index.html
+#
+# Run it through the build rather than by hand:
+#   cmake --build build/<preset> --target docs
+# or, on a machine without Doxygen installed:
+#   tools/docs.ps1      (Windows)
+#   tools/docs.sh       (Linux and macOS)
+#
+# OUTPUT_DIRECTORY is overridden by the CMake target so that a build tree keeps
+# its documentation to itself; the default below is what you get when Doxygen is
+# invoked directly from the source root.
 
 PROJECT_NAME           = "ImageWorker"
-PROJECT_BRIEF          = "Duplicate and similar image finder"
+PROJECT_BRIEF          = "Find which image assets appear inside a screenshot, and where"
 PROJECT_NUMBER         = 0.1.0
 
-INPUT                  = src README.md
-USE_MDFILE_AS_MAINPAGE = README.md
+INPUT                  = src docs/mainpage.md
+USE_MDFILE_AS_MAINPAGE = docs/mainpage.md
 RECURSIVE              = YES
 FILE_PATTERNS          = *.h *.cpp *.md
-
 OUTPUT_DIRECTORY       = build/doc
+
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 HTML_OUTPUT            = html
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_COLORSTYLE        = TOGGLE
 
-# Document everything, including the private members that carry the design
-# rationale, and the static helpers inside .cpp files.
+# The private members are where most of the reasoning lives in this codebase,
+# so a reference that hides them documents the wrong half.
 EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = YES
 EXTRACT_STATIC         = YES
@@ -27,10 +40,15 @@ QT_AUTOBRIEF           = YES
 MARKDOWN_SUPPORT       = YES
 AUTOLINK_SUPPORT       = YES
 
+# Declaration order carries meaning here — the public interface first, the
+# machinery after it — and alphabetical order would throw that away.
 SORT_MEMBER_DOCS       = NO
 SORT_BRIEF_DOCS        = NO
 
-# Qt's moc keywords would otherwise confuse the parser.
+# Callers of a function are usually looking for who else depends on it.
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = NO
+
 ENABLE_PREPROCESSING   = YES
 MACRO_EXPANSION        = YES
 EXPAND_ONLY_PREDEF     = YES
@@ -40,10 +58,16 @@ PREDEFINED             = Q_OBJECT= \
                          signals=public \
                          slots= \
                          Q_DECL_OVERRIDE=override \
+                         IMAGEWORKER_WITH_INFERENCE=1 \
                          IMAGEWORKER_VERSION="0.1.0"
 
-EXCLUDE_PATTERNS       = */build/* */moc_* */qrc_* */ui_*
+# Generated sources say nothing a reader needs; the vendored trees are not ours.
+EXCLUDE                = third_party build dist
+EXCLUDE_PATTERNS       = */build/* */moc_* */qrc_* */ui_* */.qt/*
 
+# An undocumented member is a defect in a codebase whose whole point is that the
+# reasoning is written down, so both of these stay on.
 WARN_IF_UNDOCUMENTED   = YES
 WARN_NO_PARAMDOC       = YES
+WARN_AS_ERROR          = NO
 QUIET                  = YES

@@ -54,7 +54,7 @@ bool isStatePath(const QString &rel);
  *
  * Searched in order: a @c models directory beside the executable, then the same
  * name in each of its parent directories up to four levels — which covers a
- * build tree, where the binary sits in @c build/<preset>/bin. Falls back to a
+ * build tree, where the binary sits in @c build/@<preset@>/bin. Falls back to a
  * plain relative @c models so the error message a caller prints stays sensible.
  *
  * @return Directory path, '/'-separated.

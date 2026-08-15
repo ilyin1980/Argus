@@ -24,6 +24,6 @@ indexes/
 # Regenerate with tools/make-test-screenshot.ps1
 testdata/
 
-# Doxygen output
+# Doxygen output. Generated from the sources; see README "API documentation".
 doc/
 dist/

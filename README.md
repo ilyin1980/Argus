@@ -238,6 +238,25 @@ inliers at 89% while the true source produced 123 at 98%.
 - Near-duplicate groups mean *review these*, not *delete these*. Only exact
   groups are safe to act on automatically.
 
+## API documentation
+
+Every declaration in the codebase carries a Doxygen comment, and the reference
+is generated from them:
+
+```
+cmake --build build/<preset> --target docs   # writes build/<preset>/doc/html
+tools/docs.ps1                               # Windows, fetches Doxygen if needed
+tools/docs.sh                                # Linux and macOS
+```
+
+The generated pages are build output and are not committed: 7 MB of HTML that
+changes with every edit belongs in a build directory, not in history. The
+Doxyfile is configured to warn about any undocumented entity or parameter, and
+the tree currently generates **zero warnings** — treat a new one as a defect.
+
+`docs/mainpage.md` is the front page of the reference and the shortest map of
+how the pieces fit together.
+
 ## Design notes
 
 - Paths are stored **relative to the indexed root**, so an index built on one

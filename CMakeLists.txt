@@ -223,6 +223,45 @@ else()
     message(STATUS "  deploy tool     : not found — packages will need Qt on the system")
 endif()
 
+# ---------------------------------------------------------------------------
+# API documentation.
+#
+# Not part of ALL: generating it on every build would slow the loop down for
+# something nobody reads on every build. It is also not required to be present -
+# a checkout without Doxygen still builds the tool, and says where to get it.
+# ---------------------------------------------------------------------------
+find_package(Doxygen QUIET)
+if(NOT DOXYGEN_FOUND)
+    # tools/docs.* fetch a portable copy here rather than installing anything.
+    find_program(IMAGEWORKER_DOXYGEN doxygen
+        PATHS "${CMAKE_CURRENT_SOURCE_DIR}/third_party/doxygen"
+              "${CMAKE_CURRENT_SOURCE_DIR}/third_party/doxygen/bin"
+        NO_DEFAULT_PATH)
+else()
+    set(IMAGEWORKER_DOXYGEN "${DOXYGEN_EXECUTABLE}")
+endif()
+
+if(IMAGEWORKER_DOXYGEN)
+    set(IMAGEWORKER_DOC_DIR "${CMAKE_BINARY_DIR}/doc")
+
+    # A two-line file that includes the real one and redirects the output, so
+    # that the checked-in Doxyfile stays the single description of the docs and
+    # running `doxygen` by hand still works without any environment set up.
+    file(WRITE "${CMAKE_BINARY_DIR}/Doxyfile.build"
+         "@INCLUDE = ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile\n"
+         "OUTPUT_DIRECTORY = ${IMAGEWORKER_DOC_DIR}\n")
+
+    add_custom_target(docs
+        COMMAND ${CMAKE_COMMAND} -E make_directory "${IMAGEWORKER_DOC_DIR}"
+        COMMAND "${IMAGEWORKER_DOXYGEN}" "${CMAKE_BINARY_DIR}/Doxyfile.build"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Generating API documentation into ${IMAGEWORKER_DOC_DIR}/html"
+        VERBATIM)
+    message(STATUS "  docs target     : ${IMAGEWORKER_DOXYGEN}")
+else()
+    message(STATUS "  docs target     : Doxygen not found — run tools/docs.ps1 or tools/docs.sh")
+endif()
+
 set(CPACK_PACKAGE_NAME "ImageWorker")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_FILE_NAME "ImageWorker-${PROJECT_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
