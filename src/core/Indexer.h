@@ -63,6 +63,24 @@ signals:
 
 private:
     /**
+     * @brief Index the requested git branches beside the working tree.
+     * @param db      Open database.
+     * @param root    Indexed root; its repository is discovered from it.
+     * @param options Which branches, and the decode settings to reuse.
+     * @param stats   Counters updated in place.
+     *
+     * Blobs are read out of the object store rather than checked out, so the
+     * working tree is never touched and no branch has to be switched to. The
+     * cheap check is the branch tip: a ref whose tip has not moved since the
+     * last run cannot hold a changed file, and is skipped without listing a
+     * single tree.
+     */
+    void indexBranches(Database &db,
+                       const QString &root,
+                       const IndexOptions &options,
+                       IndexStats &stats);
+
+    /**
      * @brief Second pass: neural local features for every decodable image.
      * @param db      Open database, used for the descriptor index.
      * @param root    Indexed root, for rebuilding absolute paths.

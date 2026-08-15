@@ -115,7 +115,12 @@ bool Database::applySchema(QString *error)
     static const char *statements[] = {
         "CREATE TABLE IF NOT EXISTS files ("
         "  id           INTEGER PRIMARY KEY,"
-        "  rel          TEXT    NOT NULL UNIQUE,"
+        "  rel          TEXT    NOT NULL,"
+        // Empty for the working tree, a branch name for anything read out of
+        // git. Part of the key rather than a tag: the same path exists on every
+        // branch, usually with different contents.
+        "  ref          TEXT    NOT NULL DEFAULT '',"
+        "  blob         TEXT    NOT NULL DEFAULT '',"
         "  size         INTEGER NOT NULL,"
         "  mtime        INTEGER NOT NULL,"
         "  width        INTEGER NOT NULL DEFAULT 0,"
@@ -151,6 +156,8 @@ bool Database::applySchema(QString *error)
         "  key   TEXT PRIMARY KEY,"
         "  value TEXT NOT NULL)",
 
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_files_rel_ref ON files(rel,ref)",
+        "CREATE INDEX IF NOT EXISTS idx_files_ref     ON files(ref)",
         "CREATE INDEX IF NOT EXISTS idx_files_chash64 ON files(chash64)",
         "CREATE INDEX IF NOT EXISTS idx_files_size    ON files(size)",
         "CREATE INDEX IF NOT EXISTS idx_files_b0      ON files(b0)",
@@ -159,13 +166,92 @@ bool Database::applySchema(QString *error)
         "CREATE INDEX IF NOT EXISTS idx_files_b3      ON files(b3)",
     };
 
+    if (!migrateToRefs(error))
+        return false;
+
     QSqlQuery query(m_db);
     for (const char *sql : statements) {
         if (!query.exec(QLatin1String(sql)))
             return fail(error, query, "schema");
     }
 
-    setMetaValue(QStringLiteral("schema_version"), QStringLiteral("1"));
+    setMetaValue(QStringLiteral("schema_version"), QStringLiteral("2"));
+    return true;
+}
+
+bool Database::migrateToRefs(QString *error)
+{
+    QSqlQuery query(m_db);
+
+    // Nothing to migrate in a database this build is creating from scratch.
+    if (!query.exec(QStringLiteral("SELECT name FROM sqlite_master"
+                                   " WHERE type='table' AND name='files'")))
+        return fail(error, query, "inspect schema");
+    if (!query.next())
+        return true;
+    query.finish();
+
+    if (!query.exec(QStringLiteral("PRAGMA table_info(files)")))
+        return fail(error, query, "inspect files");
+    bool hasRef = false;
+    while (query.next()) {
+        if (query.value(1).toString() == QLatin1String("ref"))
+            hasRef = true;
+    }
+    query.finish();
+    if (hasRef)
+        return true;
+
+    // The old table declared `rel` UNIQUE as a column constraint, and SQLite
+    // cannot drop a column constraint in place. Rebuilding the table is the
+    // only route; ids are carried across so descriptors and previews, which
+    // reference them, survive untouched.
+    static const char *migration[] = {
+        "ALTER TABLE files RENAME TO files_v1",
+        "CREATE TABLE files ("
+        "  id           INTEGER PRIMARY KEY,"
+        "  rel          TEXT    NOT NULL,"
+        "  ref          TEXT    NOT NULL DEFAULT '',"
+        "  blob         TEXT    NOT NULL DEFAULT '',"
+        "  size         INTEGER NOT NULL,"
+        "  mtime        INTEGER NOT NULL,"
+        "  width        INTEGER NOT NULL DEFAULT 0,"
+        "  height       INTEGER NOT NULL DEFAULT 0,"
+        "  content_hash BLOB,"
+        "  chash64      INTEGER NOT NULL DEFAULT 0,"
+        "  phash        INTEGER NOT NULL DEFAULT 0,"
+        "  dhash        INTEGER NOT NULL DEFAULT 0,"
+        "  b0           INTEGER NOT NULL DEFAULT 0,"
+        "  b1           INTEGER NOT NULL DEFAULT 0,"
+        "  b2           INTEGER NOT NULL DEFAULT 0,"
+        "  b3           INTEGER NOT NULL DEFAULT 0,"
+        "  status       INTEGER NOT NULL DEFAULT 0,"
+        "  indexed_at   INTEGER NOT NULL DEFAULT 0)",
+        "INSERT INTO files"
+        " (id,rel,ref,blob,size,mtime,width,height,content_hash,chash64,"
+        "  phash,dhash,b0,b1,b2,b3,status,indexed_at)"
+        " SELECT id,rel,'','',size,mtime,width,height,content_hash,chash64,"
+        "        phash,dhash,b0,b1,b2,b3,status,indexed_at FROM files_v1",
+        "DROP TABLE files_v1",
+    };
+
+    if (!m_db.transaction()) {
+        if (error)
+            *error = m_db.lastError().text();
+        return false;
+    }
+    for (const char *sql : migration) {
+        if (!query.exec(QLatin1String(sql))) {
+            const bool failed = fail(error, query, "migrate to refs");
+            m_db.rollback();
+            return failed;
+        }
+    }
+    if (!m_db.commit()) {
+        if (error)
+            *error = m_db.lastError().text();
+        return false;
+    }
     return true;
 }
 
@@ -174,11 +260,11 @@ bool Database::prepareStatements(QString *error)
     m_upsertFile = std::make_unique<QSqlQuery>(m_db);
     if (!m_upsertFile->prepare(QStringLiteral(
             "INSERT INTO files"
-            " (rel,size,mtime,width,height,content_hash,chash64,phash,dhash,b0,b1,b2,b3,status,indexed_at)"
+            " (rel,ref,blob,size,mtime,width,height,content_hash,chash64,phash,dhash,b0,b1,b2,b3,status,indexed_at)"
             " VALUES"
-            " (:rel,:size,:mtime,:width,:height,:chash,:chash64,:phash,:dhash,:b0,:b1,:b2,:b3,:status,:ts)"
-            " ON CONFLICT(rel) DO UPDATE SET"
-            "  size=excluded.size, mtime=excluded.mtime,"
+            " (:rel,:ref,:blob,:size,:mtime,:width,:height,:chash,:chash64,:phash,:dhash,:b0,:b1,:b2,:b3,:status,:ts)"
+            " ON CONFLICT(rel,ref) DO UPDATE SET"
+            "  blob=excluded.blob, size=excluded.size, mtime=excluded.mtime,"
             "  width=excluded.width, height=excluded.height,"
             "  content_hash=excluded.content_hash, chash64=excluded.chash64,"
             "  phash=excluded.phash, dhash=excluded.dhash,"
@@ -188,7 +274,7 @@ bool Database::prepareStatements(QString *error)
     }
 
     m_selectId = std::make_unique<QSqlQuery>(m_db);
-    if (!m_selectId->prepare(QStringLiteral("SELECT id FROM files WHERE rel=:rel")))
+    if (!m_selectId->prepare(QStringLiteral("SELECT id FROM files WHERE rel=:rel AND ref=:ref")))
         return fail(error, *m_selectId, "prepare select id");
 
     m_upsertThumb = std::make_unique<QSqlQuery>(m_db);
@@ -231,7 +317,15 @@ bool Database::upsert(const IndexRecord &record, QString *error)
     int bands[4] = { 0, 0, 0, 0 };
     bandsOf(record.phash, bands);
 
+    // A default-constructed QString is null, and Qt binds null as SQL NULL,
+    // which a NOT NULL column rejects. The working tree is spelled as the empty
+    // string, not as the absence of a value.
+    const QString ref  = record.ref.isNull() ? QString::fromLatin1("") : record.ref;
+    const QString blob = record.blob.isNull() ? QString::fromLatin1("") : record.blob;
+
     m_upsertFile->bindValue(QStringLiteral(":rel"), record.rel);
+    m_upsertFile->bindValue(QStringLiteral(":ref"), ref);
+    m_upsertFile->bindValue(QStringLiteral(":blob"), blob);
     m_upsertFile->bindValue(QStringLiteral(":size"), record.size);
     m_upsertFile->bindValue(QStringLiteral(":mtime"), record.mtime);
     m_upsertFile->bindValue(QStringLiteral(":width"), record.width);
@@ -254,6 +348,7 @@ bool Database::upsert(const IndexRecord &record, QString *error)
     // The upsert may have updated rather than inserted, so lastInsertId() is
     // not usable; look the id up explicitly.
     m_selectId->bindValue(QStringLiteral(":rel"), record.rel);
+    m_selectId->bindValue(QStringLiteral(":ref"), ref);
     if (!m_selectId->exec() || !m_selectId->next())
         return fail(error, *m_selectId, "select id");
     const qint64 id = m_selectId->value(0).toLongLong();
@@ -277,7 +372,7 @@ QHash<QString, QPair<qint64, qint64>> Database::loadSignatures()
     QHash<QString, QPair<qint64, qint64>> out;
     QSqlQuery query(m_db);
     query.setForwardOnly(true);
-    if (!query.exec(QStringLiteral("SELECT rel,size,mtime FROM files")))
+    if (!query.exec(QStringLiteral("SELECT rel,size,mtime FROM files WHERE ref=''")))
         return out;
 
     while (query.next()) {
@@ -293,7 +388,7 @@ int Database::pruneMissing(const QSet<QString> &present, QString *error)
     {
         QSqlQuery query(m_db);
         query.setForwardOnly(true);
-        if (!query.exec(QStringLiteral("SELECT id,rel FROM files"))) {
+        if (!query.exec(QStringLiteral("SELECT id,rel FROM files WHERE ref=''"))) {
             fail(error, query, "prune scan");
             return -1;
         }
@@ -371,7 +466,7 @@ QList<FileInfoRow> Database::filesByIds(const QList<qint64> &ids)
 
         QSqlQuery query(m_db);
         query.setForwardOnly(true);
-        if (!query.exec(QStringLiteral("SELECT id,rel,size,mtime,width,height,phash"
+        if (!query.exec(QStringLiteral("SELECT id,rel,size,mtime,width,height,phash,ref,blob"
                                        " FROM files WHERE id IN (%1)")
                             .arg(placeholders.join(QLatin1Char(','))))) {
             continue;
@@ -385,6 +480,8 @@ QList<FileInfoRow> Database::filesByIds(const QList<qint64> &ids)
             row.width  = query.value(4).toInt();
             row.height = query.value(5).toInt();
             row.phash  = toHash(query.value(6));
+            row.ref    = query.value(7).toString();
+            row.blob   = query.value(8).toString();
             out.append(row);
         }
     }
@@ -470,10 +567,10 @@ QList<PendingFeature> Database::filesWithoutFeatures(const QString &model)
     QSqlQuery query(m_db);
     query.setForwardOnly(true);
     query.prepare(QStringLiteral(
-        "SELECT f.id, f.rel FROM files f"
+        "SELECT f.id, f.rel, f.ref, f.blob FROM files f"
         " LEFT JOIN features x ON x.file_id = f.id AND x.model = :model"
         " WHERE f.status = 0 AND x.file_id IS NULL"
-        " ORDER BY f.id"));
+        " ORDER BY f.ref, f.id"));
     query.bindValue(QStringLiteral(":model"), model);
     if (!query.exec())
         return out;
@@ -482,9 +579,94 @@ QList<PendingFeature> Database::filesWithoutFeatures(const QString &model)
         PendingFeature p;
         p.fileId = query.value(0).toLongLong();
         p.rel    = query.value(1).toString();
+        p.ref    = query.value(2).toString();
+        p.blob   = query.value(3).toString();
         out.append(p);
     }
     return out;
+}
+
+QHash<QString, QString> Database::loadBlobs(const QString &ref)
+{
+    QHash<QString, QString> out;
+    QSqlQuery query(m_db);
+    query.setForwardOnly(true);
+    query.prepare(QStringLiteral("SELECT rel,blob FROM files WHERE ref=:ref"));
+    query.bindValue(QStringLiteral(":ref"), ref);
+    if (!query.exec())
+        return out;
+
+    while (query.next())
+        out.insert(query.value(0).toString(), query.value(1).toString());
+    return out;
+}
+
+QStringList Database::refs()
+{
+    QStringList out;
+    QSqlQuery query(m_db);
+    query.setForwardOnly(true);
+    if (!query.exec(QStringLiteral("SELECT DISTINCT ref FROM files ORDER BY ref")))
+        return out;
+    while (query.next())
+        out << query.value(0).toString();
+    return out;
+}
+
+int Database::removeRef(const QString &ref, QString *error)
+{
+    QSqlQuery query(m_db);
+    if (!query.prepare(QStringLiteral("DELETE FROM files WHERE ref=:ref"))) {
+        fail(error, query, "remove ref prepare");
+        return -1;
+    }
+    query.bindValue(QStringLiteral(":ref"), ref);
+    if (!query.exec()) {
+        fail(error, query, "remove ref");
+        return -1;
+    }
+    return query.numRowsAffected();
+}
+
+int Database::pruneMissingInRef(const QString &ref, const QSet<QString> &present, QString *error)
+{
+    QList<qint64> doomed;
+    {
+        QSqlQuery query(m_db);
+        query.setForwardOnly(true);
+        query.prepare(QStringLiteral("SELECT id,rel FROM files WHERE ref=:ref"));
+        query.bindValue(QStringLiteral(":ref"), ref);
+        if (!query.exec()) {
+            fail(error, query, "prune ref scan");
+            return -1;
+        }
+        while (query.next()) {
+            if (!present.contains(query.value(1).toString()))
+                doomed.append(query.value(0).toLongLong());
+        }
+    }
+    if (doomed.isEmpty())
+        return 0;
+
+    if (!beginTransaction(error))
+        return -1;
+
+    QSqlQuery del(m_db);
+    if (!del.prepare(QStringLiteral("DELETE FROM files WHERE id=:id"))) {
+        fail(error, del, "prune ref prepare");
+        return -1;
+    }
+    for (qint64 id : doomed) {
+        del.bindValue(QStringLiteral(":id"), id);
+        if (!del.exec()) {
+            fail(error, del, "prune ref delete");
+            return -1;
+        }
+    }
+    if (!commit(error))
+        return -1;
+
+    return static_cast<int>(doomed.size());
 }
 
 QList<FeatureRecord> Database::allFeatures(const QString &model)
@@ -531,7 +713,7 @@ QList<FileInfoRow> Database::filesWithFewFeatures(const QString &model, int maxC
     query.setForwardOnly(true);
     query.prepare(QStringLiteral(
         "SELECT f.id, f.rel, f.size, f.mtime, f.width, f.height, f.phash,"
-        "       COALESCE(x.count, 0) AS kp"
+        "       f.ref, f.blob, COALESCE(x.count, 0) AS kp"
         " FROM files f"
         " LEFT JOIN features x ON x.file_id = f.id AND x.model = :model"
         " WHERE f.status = 0 AND COALESCE(x.count, 0) <= :maxCount"
@@ -550,6 +732,8 @@ QList<FileInfoRow> Database::filesWithFewFeatures(const QString &model, int maxC
         row.width  = query.value(4).toInt();
         row.height = query.value(5).toInt();
         row.phash  = toHash(query.value(6));
+        row.ref    = query.value(7).toString();
+        row.blob   = query.value(8).toString();
         out.append(row);
     }
     return out;

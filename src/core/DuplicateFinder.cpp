@@ -81,15 +81,27 @@ void sortMembers(QList<FileInfoRow> &files)
     });
 }
 
-/** @brief Bytes that could be reclaimed by keeping only the first member. */
+/**
+ * @brief Bytes that could be reclaimed by keeping only the first member.
+ *
+ * Copies living in a git branch are counted as members of the group, because
+ * the group is the honest answer to "where else is this picture", but never as
+ * reclaimable space: nothing on disk is freed by deleting them, and git stores
+ * identical content once regardless of how many branches reference it.
+ */
 qint64 wastedIn(const QList<FileInfoRow> &files)
 {
-    if (files.size() < 2)
-        return 0;
     qint64 total = 0;
-    for (const FileInfoRow &f : files)
+    qint64 largest = 0;
+    int onDisk = 0;
+    for (const FileInfoRow &f : files) {
+        if (!f.ref.isEmpty())
+            continue;
+        ++onDisk;
         total += f.size;
-    return total - files.first().size;
+        largest = std::max(largest, f.size);
+    }
+    return onDisk < 2 ? 0 : total - largest;
 }
 
 } // namespace

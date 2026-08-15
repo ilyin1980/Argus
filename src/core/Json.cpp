@@ -11,8 +11,17 @@ QJsonObject toJson(const FileInfoRow &row, const QString &root)
 {
     QJsonObject o;
     o.insert(QStringLiteral("rel"), row.rel);
-    if (!root.isEmpty())
-        o.insert(QStringLiteral("path"), absolutePathFor(root, row.rel));
+    if (row.ref.isEmpty()) {
+        if (!root.isEmpty())
+            o.insert(QStringLiteral("path"), absolutePathFor(root, row.rel));
+    } else {
+        // No "path" for a row read out of a branch: there is no such file, and
+        // a consumer that finds the key would go on to open it. What it gets
+        // instead is git's own revision syntax, which `git show` accepts.
+        o.insert(QStringLiteral("ref"), row.ref);
+        o.insert(QStringLiteral("blob"), row.blob);
+        o.insert(QStringLiteral("rev"), row.ref + QLatin1Char(':') + row.rel);
+    }
     o.insert(QStringLiteral("size"), static_cast<double>(row.size));
     o.insert(QStringLiteral("width"), row.width);
     o.insert(QStringLiteral("height"), row.height);

@@ -9,6 +9,7 @@ qt_add_executable(imageworker-gui
     ScanProgressBar.h   ScanProgressBar.cpp
     HelpDialog.h        HelpDialog.cpp
     Localization.h      Localization.cpp
+    BranchDialog.h      BranchDialog.cpp
 )
 
 # Translations. Compiled here and embedded, not shipped as loose files: a

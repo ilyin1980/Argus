@@ -22,6 +22,13 @@ QByteArray fileContentHash(const QString &absPath, qint64 *bytesRead)
     return hash.result();
 }
 
+QByteArray dataContentHash(const QByteArray &data)
+{
+    QCryptographicHash hash(QCryptographicHash::Blake2b_256);
+    hash.addData(data);
+    return hash.result();
+}
+
 qint64 shortHash(const QByteArray &contentHash)
 {
     if (contentHash.size() < 8)

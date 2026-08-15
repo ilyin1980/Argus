@@ -6,6 +6,7 @@ qt_add_library(imageworker_core STATIC
     PerceptualHash.h     PerceptualHash.cpp
     ImageDecoder.h       ImageDecoder.cpp
     Scanner.h            Scanner.cpp
+    GitRepo.h            GitRepo.cpp
     Database.h           Database.cpp
     Indexer.h            Indexer.cpp
     DuplicateFinder.h    DuplicateFinder.cpp

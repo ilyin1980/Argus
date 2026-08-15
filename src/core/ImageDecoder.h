@@ -67,6 +67,18 @@ DecodedImage decodeForIndex(const QString &absPath, const DecodeRequest &req);
 DecodedImage decodeFromImage(const QImage &image, const DecodeRequest &req);
 
 /**
+ * @brief Derive the same products from an encoded file held in memory.
+ * @param data Encoded png or jpg bytes.
+ * @param req  What to produce.
+ * @return Populated result; check DecodedImage::ok before use.
+ * @note Used for git blobs. It runs the identical decode chain as
+ *       decodeForIndex(), which is the point: a file read from disk and the
+ *       same file read out of a commit must hash to the same value, or the
+ *       tool cannot tell you the branch holds the picture you are looking at.
+ */
+DecodedImage decodeFromData(const QByteArray &data, const DecodeRequest &req);
+
+/**
  * @brief File extensions indexed unless the caller overrides them.
  * @return Lowercase extensions without dots: png, jpg, jpeg.
  * @note Intersected with what this build can actually read, so a Qt install

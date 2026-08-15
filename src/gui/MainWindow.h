@@ -89,6 +89,15 @@ protected:
 private slots:
     void chooseRoot();
     void chooseStorage();
+
+    /**
+     * @brief Let the user pick which git branches this index should cover.
+     *
+     * The choice is stored with the index rather than in the application
+     * settings: it describes what one index contains, and following the user to
+     * a different folder would be wrong.
+     */
+    void chooseBranches();
     void startIndexing();
     void cancelCurrentTask();
     void onIndexFinished(const iw::IndexStats &stats, const QString &error);
@@ -178,6 +187,24 @@ private:
 
     void openDatabaseForRoot();
 
+    /**
+     * @brief Enable or disable the branch button to match the current folder.
+     * @note Also refreshes the repository facts the dialog needs, so the button
+     *       is never enabled for a folder that has since stopped being a
+     *       repository.
+     */
+    void refreshRepositoryState();
+
+    /**
+     * @brief Show one indexed file, wherever it actually lives.
+     * @param row Result row.
+     *
+     * A row from a branch has no file to open, so its bytes are written to a
+     * temporary file first. Extracting on demand beats keeping every branch
+     * version on disk for a click that may never come.
+     */
+    void openRow(const iw::FileInfoRow &row);
+
     /** @brief Where the index would live if the user has not chosen a location. */
     QString automaticStorageDir() const;
 
@@ -253,6 +280,14 @@ private:
     QString                           m_finderKey;
     QString                       m_root;
     QString                       m_dbPath;
+
+    /// Branches this index covers, read from the index when it is opened.
+    QStringList m_branches;
+
+    /// Facts about the repository the image folder sits in, refreshed whenever
+    /// the folder changes. Empty topLevel means "not a repository".
+    QString m_repoTopLevel;
+    QString m_repoCurrentRef;
 
     QList<iw::DuplicateGroup> m_groups;
     std::atomic_bool          m_taskCancel{false};

@@ -35,7 +35,7 @@
     </property>
     <item>
      <widget class="QWidget" name="toolbar" native="true">
-      <layout class="QGridLayout" name="toolbarLayout" columnstretch="0,1,0,0,0,0">
+      <layout class="QGridLayout" name="toolbarLayout" columnstretch="0,1,0,0,0,0,0">
        <property name="leftMargin">
         <number>0</number>
        </property>
@@ -139,6 +139,20 @@ whole-image similarity work.</string>
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="6">
+        <widget class="QPushButton" name="branchesButton">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+         <property name="toolTip">
+          <string>Pick which git branches to index alongside the working tree.
+Enabled only when the image folder is inside a git repository.</string>
+         </property>
+         <property name="text">
+          <string>Branches…</string>
          </property>
         </widget>
        </item>

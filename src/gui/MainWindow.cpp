@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 
+#include "BranchDialog.h"
 #include "IndexController.h"
 #include "Localization.h"
 #include "QueryImageView.h"
@@ -12,6 +13,7 @@
 #include "core/Database.h"
 #include "core/DescriptorStore.h"
 #include "core/DuplicateFinder.h"
+#include "core/GitRepo.h"
 #include "core/Paths.h"
 #include "core/QueryEngine.h"
 #include "core/Vocabulary.h"
@@ -51,6 +53,7 @@
 #include <QSpinBox>
 #include <QSplitter>
 #include <QStandardItemModel>
+#include <QTemporaryFile>
 #include <QStatusBar>
 #include <QTabWidget>
 #include <QThread>
@@ -207,6 +210,7 @@ void MainWindow::wireForm()
     connect(m_storageEdit, &QLineEdit::textEdited, this, [this] {
         m_storageIsAutomatic = false;
     });
+    connect(ui->branchesButton, &QPushButton::clicked, this, &MainWindow::chooseBranches);
     connect(ui->browseStorageButton, &QPushButton::clicked, this, &MainWindow::chooseStorage);
     connect(ui->defaultStorageButton, &QPushButton::clicked, this, [this] {
         m_storageIsAutomatic = true;
@@ -586,6 +590,40 @@ void MainWindow::chooseRoot()
         setRoot(dir);
 }
 
+void MainWindow::refreshRepositoryState()
+{
+    m_repoTopLevel.clear();
+    m_repoCurrentRef.clear();
+
+    if (!m_root.isEmpty() && QFileInfo(m_root).isDir()) {
+        const iw::git::RepoInfo repo = iw::git::inspect(m_root);
+        if (repo.isRepo) {
+            m_repoTopLevel   = repo.topLevel;
+            m_repoCurrentRef = repo.currentRef;
+        }
+    }
+    ui->branchesButton->setEnabled(!m_repoTopLevel.isEmpty());
+}
+
+void MainWindow::chooseBranches()
+{
+    if (m_repoTopLevel.isEmpty())
+        return;
+
+    BranchDialog dialog(m_repoTopLevel, m_repoCurrentRef, m_branches, this);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    m_branches = dialog.selectedBranches();
+    if (m_database)
+        m_database->setMetaValue(QStringLiteral("branches"), m_branches.join(QLatin1Char('\n')));
+
+    setStatus(m_branches.isEmpty()
+                  ? tr("Only the working tree will be indexed.")
+                  : tr("Branches to index: %1. Press Index to read them.")
+                        .arg(m_branches.join(QStringLiteral(", "))));
+}
+
 void MainWindow::openDatabaseForRoot()
 {
     m_database.reset();
@@ -600,6 +638,8 @@ void MainWindow::openDatabaseForRoot()
     m_queryModel->clear();
     m_groupList->clear();
     m_groups.clear();
+
+    refreshRepositoryState();
 
     if (m_root.isEmpty() || !QFileInfo(m_root).isDir()) {
         setStatus(tr("Choose a folder to begin."));
@@ -628,6 +668,9 @@ void MainWindow::openDatabaseForRoot()
 
     m_groupModel->setSource(m_database.get(), m_root);
     m_queryModel->setSource(m_database.get(), m_root);
+
+    m_branches = m_database->metaValue(QStringLiteral("branches"))
+                     .split(QLatin1Char('\n'), Qt::SkipEmptyParts);
 
     refreshMethodAvailability();
 
@@ -679,6 +722,11 @@ void MainWindow::startIndexing()
     // method stayed greyed out and the window fell back to whole-image
     // similarity, which answers a completely different question.
     options.extractFeatures  = ui->featuresCheck->isChecked();
+
+    // The dialog is the complete picture of what this index should hold, so a
+    // branch dropped there is dropped from the index too.
+    options.branches     = m_branches;
+    options.syncBranches = !m_repoTopLevel.isEmpty();
     options.featureModelPath = iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
 
     setBusy(true, tr("Indexing"));
@@ -705,6 +753,19 @@ void MainWindow::onIndexFinished(const iw::IndexStats &stats, const QString &err
     }
 
     openDatabaseForRoot();
+    if (stats.branchesIndexed > 0 || stats.branchesSkipped > 0) {
+        setStatus(tr("Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6; "
+                     "branches: %7 read, %8 unchanged")
+                      .arg(stats.indexed)
+                      .arg(stats.skipped)
+                      .arg(stats.failed)
+                      .arg(stats.pruned)
+                      .arg(stats.elapsedMs / 1000.0, 0, 'f', 1)
+                      .arg(stats.cancelled ? tr(" (cancelled)") : QString())
+                      .arg(stats.branchesIndexed)
+                      .arg(stats.branchesSkipped));
+        return;
+    }
     setStatus(tr("Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6")
                   .arg(stats.indexed)
                   .arg(stats.skipped)
@@ -1292,15 +1353,61 @@ void MainWindow::findDuplicatesOf(const QString &absolutePath)
     runQuery();
 }
 
+void MainWindow::openRow(const iw::FileInfoRow &row)
+{
+    if (row.rel.isEmpty())
+        return;
+
+    if (row.ref.isEmpty()) {
+        QDesktopServices::openUrl(QUrl::fromLocalFile(iw::absolutePathFor(m_root, row.rel)));
+        return;
+    }
+
+    if (m_repoTopLevel.isEmpty()) {
+        setStatus(tr("%1 lives in branch %2, and this folder is no longer a git "
+                     "repository.").arg(row.rel, row.ref));
+        return;
+    }
+
+    iw::git::BlobReader reader(m_repoTopLevel);
+    QString error;
+    const QByteArray data = reader.isReady() ? reader.read(row.blob, &error) : QByteArray();
+    if (data.isEmpty()) {
+        setStatus(tr("Cannot read %1 from branch %2: %3")
+                      .arg(row.rel, row.ref,
+                           error.isEmpty() ? reader.error() : error));
+        return;
+    }
+
+    // Written where the system puts temporary files, under a name that says
+    // which branch it came from, because it is about to appear in an image
+    // viewer next to the working-tree copy it is being compared with.
+    const QString name = QFileInfo(row.rel).completeBaseName();
+    const QString suffix = QFileInfo(row.rel).suffix();
+    QString safeRef = row.ref;
+    safeRef.replace(QLatin1Char('/'), QLatin1Char('-'));
+
+    auto *file = new QTemporaryFile(
+        QDir::tempPath() + QStringLiteral("/%1@%2.XXXXXX.%3").arg(name, safeRef, suffix),
+        this); // parented: it must outlive this call, and go when the window does
+    if (!file->open() || file->write(data) != data.size()) {
+        setStatus(tr("Cannot write a temporary copy of %1.").arg(row.rel));
+        delete file;
+        return;
+    }
+    file->flush();
+    file->close();
+
+    QDesktopServices::openUrl(QUrl::fromLocalFile(file->fileName()));
+    setStatus(tr("Opened %1 from branch %2.").arg(row.rel, row.ref));
+}
+
 void MainWindow::openSelected(const QModelIndex &index)
 {
     auto *model = qobject_cast<const ResultModel *>(index.model());
     if (!model)
         return;
-    const iw::FileInfoRow row = model->rowAt(index);
-    if (row.rel.isEmpty())
-        return;
-    QDesktopServices::openUrl(QUrl::fromLocalFile(iw::absolutePathFor(m_root, row.rel)));
+    openRow(model->rowAt(index));
 }
 
 void MainWindow::showResultMenu(const QPoint &position)
@@ -1317,21 +1424,38 @@ void MainWindow::showResultMenu(const QPoint &position)
         return;
     const iw::FileInfoRow row = model->rowAt(index);
     const QString absolute = iw::absolutePathFor(m_root, row.rel);
+    const bool onDisk = row.ref.isEmpty();
 
     QMenu menu(this);
-    menu.addAction(tr("Open"), this, [absolute] {
-        QDesktopServices::openUrl(QUrl::fromLocalFile(absolute));
-    });
-    menu.addAction(tr("Reveal in file manager"), this, [absolute] {
+    menu.addAction(tr("Open"), this, [this, row] { openRow(row); });
+
+    // Nothing to reveal for a version that exists only inside a commit, and an
+    // action that opens a file manager on a path that is not there is worse
+    // than an action that is plainly unavailable.
+    QAction *reveal = menu.addAction(tr("Reveal in file manager"), this, [absolute] {
         iw::revealInFileManager(absolute);
     });
+    reveal->setEnabled(onDisk);
+
     menu.addSeparator();
-    menu.addAction(tr("Find duplicates of this image"), this,
-                   [this, absolute] { findDuplicatesOf(absolute); });
-    menu.addAction(tr("Use as reference image"), this, [this, absolute] {
-        setQueryImage(absolute);
-        m_tabs->setCurrentIndex(1);
-    });
+    QAction *duplicates = menu.addAction(tr("Find duplicates of this image"), this,
+                                         [this, absolute] { findDuplicatesOf(absolute); });
+    QAction *reference = menu.addAction(tr("Use as reference image"), this,
+                                        [this, absolute] {
+                                            setQueryImage(absolute);
+                                            m_tabs->setCurrentIndex(1);
+                                        });
+    // Both load the picture from disk to search with it. A branch version would
+    // have to be extracted first; until that is worth doing, say so rather than
+    // silently search the working-tree file of the same name, which is a
+    // different picture.
+    duplicates->setEnabled(onDisk);
+    reference->setEnabled(onDisk);
+    if (!onDisk) {
+        const QString why = tr("Only for files in the working tree");
+        duplicates->setToolTip(why);
+        reference->setToolTip(why);
+    }
     menu.addSeparator();
     menu.addAction(tr("Copy full path"), this, [this] { copySelectedPaths(true); });
     menu.addAction(tr("Copy path relative to the root"), this,

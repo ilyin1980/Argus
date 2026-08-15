@@ -24,6 +24,7 @@
 #include "core/Database.h"
 #include "core/DescriptorStore.h"
 #include "core/DuplicateFinder.h"
+#include "core/GitRepo.h"
 #include "core/FeatureExtractor.h"
 #include "core/FeatureMatcher.h"
 #include "core/ImageDecoder.h"
@@ -99,6 +100,23 @@ struct CommonOptions {
 QString fullPath(const QString &root, const QString &rel)
 {
     return QDir::toNativeSeparators(iw::absolutePathFor(root, rel));
+}
+
+/**
+ * @brief How to name one result, whether it is a file or a version in a branch.
+ * @param root Indexed directory.
+ * @param row  Result row.
+ * @return An absolute path, or git's own <tt>branch:path</tt> revision syntax.
+ *
+ * A row that came out of a branch has no file on disk, and printing an absolute
+ * path for it would be a lie that scripts would then act on. <tt>git show</tt>
+ * accepts what is printed instead, so the output stays directly usable.
+ */
+QString locationOf(const QString &root, const iw::FileInfoRow &row)
+{
+    if (row.ref.isEmpty())
+        return fullPath(root, row.rel);
+    return row.ref + QLatin1Char(':') + row.rel;
 }
 
 /**
@@ -240,6 +258,14 @@ int cmdIndex(const QStringList &args)
                        QStringLiteral("px") });
     parser.addOption({ QStringLiteral("feature-cpu"),
                        QStringLiteral("Run the extractor on the CPU instead of the GPU.") });
+    parser.addOption({ QStringLiteral("branches"),
+                       QStringLiteral("Also index these git branches, comma separated, or "
+                                      "'all' for every local branch. The listed set becomes "
+                                      "the complete set: branches indexed earlier and not "
+                                      "named here are dropped."),
+                       QStringLiteral("names") });
+    parser.addOption({ QStringLiteral("remote-branches"),
+                       QStringLiteral("Include remote-tracking branches when --branches is 'all'.") });
     parser.process(args);
 
     CommonOptions common;
@@ -272,6 +298,38 @@ int cmdIndex(const QStringList &args)
                                     .split(QLatin1Char(','), Qt::SkipEmptyParts);
         for (const QString &e : raw)
             options.extensions << e.trimmed().toLower().remove(QLatin1Char('.'));
+    }
+
+    if (parser.isSet(QStringLiteral("branches"))) {
+        // Naming the branches is also declaring what the index should contain,
+        // so this is the one place allowed to drop refs it was not given.
+        options.syncBranches = true;
+
+        const QString value = parser.value(QStringLiteral("branches")).trimmed();
+        const iw::git::RepoInfo repo = iw::git::inspect(common.root);
+        if (!repo.isRepo) {
+            err() << "error: " << common.root << " is not inside a git repository\n";
+            return ExitError;
+        }
+
+        if (value.compare(QLatin1String("all"), Qt::CaseInsensitive) == 0) {
+            QString branchError;
+            options.branches = iw::git::branches(
+                repo.topLevel, parser.isSet(QStringLiteral("remote-branches")), &branchError);
+            if (options.branches.isEmpty()) {
+                err() << "error: no branches found: " << branchError << "\n";
+                return ExitError;
+            }
+        } else {
+            options.branches = value.split(QLatin1Char(','), Qt::SkipEmptyParts);
+            for (QString &name : options.branches)
+                name = name.trimmed();
+        }
+
+        // The checked-out branch is already the working tree; indexing it again
+        // stores every file twice under two names for the same bytes.
+        options.branches.removeAll(repo.currentRef);
+        options.branches.removeDuplicates();
     }
 
     iw::Indexer indexer;
@@ -309,6 +367,10 @@ int cmdIndex(const QStringList &args)
               << ", pruned " << stats.pruned << "\n"
               << "read " << humanBytes(stats.bytesRead)
               << " in " << (stats.elapsedMs / 1000.0) << " s\n";
+        if (stats.branchesIndexed > 0 || stats.branchesSkipped > 0) {
+            out() << "branches " << stats.branchesIndexed << " read, "
+                  << stats.branchesSkipped << " unchanged\n";
+        }
         if (options.extractFeatures) {
             out() << "features " << stats.featured
                   << " images, " << stats.keypointsTotal << " keypoints"
@@ -392,7 +454,7 @@ int cmdDupes(const QStringList &args)
                 out() << "\n";
             first = false;
             for (const iw::FileInfoRow &file : group.files)
-                out() << fullPath(common.root, file.rel) << "\n";
+                out() << locationOf(common.root, file) << "\n";
         }
     } else if (common.json) {
         for (const iw::DuplicateGroup &group : report.groups)
@@ -409,7 +471,7 @@ int cmdDupes(const QStringList &args)
                 out() << "  distance<=" << group.maxDistance;
             out() << "\n";
             for (const iw::FileInfoRow &file : group.files) {
-                out() << "    " << fullPath(common.root, file.rel)
+                out() << "    " << locationOf(common.root, file)
                       << "  (" << file.width << "x" << file.height
                       << ", " << humanBytes(file.size) << ")\n";
             }
@@ -477,7 +539,7 @@ int cmdQuery(const QStringList &args)
 
     if (common.paths) {
         for (const iw::Match &match : result.matches)
-            out() << fullPath(common.root, match.file.rel) << "\n";
+            out() << locationOf(common.root, match.file) << "\n";
     } else if (common.json) {
         for (const iw::Match &match : result.matches)
             out() << iw::toLine(iw::toJson(match, common.root)) << "\n";
@@ -485,7 +547,7 @@ int cmdQuery(const QStringList &args)
         for (const iw::Match &match : result.matches) {
             out() << QString::number(match.score, 'f', 4) << "  "
                   << "d=" << match.distance << "  "
-                  << fullPath(common.root, match.file.rel) << "\n";
+                  << locationOf(common.root, match.file) << "\n";
         }
         if (result.matches.isEmpty())
             err() << "no matches within distance " << options.maxDistance << "\n";
@@ -709,7 +771,7 @@ int cmdFind(const QStringList &args)
 
     if (common.paths) {
         for (const iw::FindResult &r : results)
-            out() << fullPath(common.root, r.file.rel) << "\n";
+            out() << locationOf(common.root, r.file) << "\n";
     } else if (common.json) {
         for (const iw::FindResult &r : results) {
             QJsonObject o = iw::toJson(r.file, common.root);
@@ -752,7 +814,7 @@ int cmdFind(const QStringList &args)
                 }
                 out() << "at " << qRound(r.box.x()) << "," << qRound(r.box.y())
                       << " " << qRound(r.box.width()) << "x" << qRound(r.box.height())
-                      << "   " << fullPath(common.root, r.file.rel) << "\n";
+                      << "   " << locationOf(common.root, r.file) << "\n";
             }
         }
     }

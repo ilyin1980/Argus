@@ -52,6 +52,8 @@ struct FeatureRecord {
 struct PendingFeature {
     qint64  fileId = 0;
     QString rel;
+    QString ref;  ///< Empty for the working tree, otherwise the branch to read from.
+    QString blob; ///< Git object id, when @ref ref is set.
 };
 
 /** @brief Owns one SQLite connection and every statement ImageWorker issues. */
@@ -113,12 +115,47 @@ public:
     QHash<QString, QPair<qint64, qint64>> loadSignatures();
 
     /**
+     * @brief Load the blob id recorded for every file of one ref.
+     * @param ref Branch name; the working tree is not addressed this way.
+     * @return Map from relative path to blob object id.
+     * @note This is the incremental check for a branch. Blob ids are content
+     *       addresses, so an unchanged id means unchanged bytes — a stronger
+     *       statement than size and mtime can make about a file on disk.
+     */
+    QHash<QString, QString> loadBlobs(const QString &ref);
+
+    /**
+     * @brief Every ref that has rows in this index.
+     * @return Branch names; the empty string stands for the working tree.
+     */
+    QStringList refs();
+
+    /**
+     * @brief Delete every row belonging to one ref.
+     * @param ref   Branch name.
+     * @param error Optional out-parameter receiving a failure description.
+     * @return Number of rows removed, or -1 on failure.
+     */
+    int removeRef(const QString &ref, QString *error = nullptr);
+
+    /**
      * @brief Delete rows whose file is no longer on disk.
      * @param present Relative paths seen by the current scan.
      * @param error   Optional out-parameter receiving a failure description.
      * @return Number of rows removed, or -1 on failure.
      */
     int pruneMissing(const QSet<QString> &present, QString *error = nullptr);
+
+    /**
+     * @brief Delete rows of one ref whose path is no longer in that ref.
+     * @param ref     Branch name.
+     * @param present Relative paths the ref currently holds.
+     * @param error   Optional out-parameter receiving a failure description.
+     * @return Number of rows removed, or -1 on failure.
+     */
+    int pruneMissingInRef(const QString &ref,
+                          const QSet<QString> &present,
+                          QString *error = nullptr);
 
     /**
      * @brief Load every decodable row in the compact, path-free form.
@@ -216,6 +253,14 @@ public:
 
 private:
     bool applySchema(QString *error);
+
+    /**
+     * @brief Rebuild a version-1 @c files table so it can hold git refs.
+     * @param error Optional out-parameter receiving a failure description.
+     * @return @c true when the database is already current or was migrated.
+     */
+    bool migrateToRefs(QString *error);
+
     bool prepareStatements(QString *error);
 
     QString      m_connectionName;

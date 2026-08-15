@@ -58,12 +58,9 @@ QImage fitToBox(const QImage &src, int box)
     return src.scaled(target, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
 }
 
-/// Read a file, asking the plugin for a reduced decode that fits @p box. The
-/// target size is computed exactly as fitToBox() computes it, so a file read
-/// this way and the same file read whole and then fitted agree pixel for pixel.
-QImage readFitted(const QString &absPath, const QSize &full, int box)
+/// Apply the reduced-decode request shared by every reader below.
+void requestFit(QImageReader &reader, const QSize &full, int box)
 {
-    QImageReader reader(absPath);
     reader.setAutoTransform(true);           // honour the EXIF orientation tag
     reader.setDecideFormatFromContent(true); // wrong extensions are common
 
@@ -73,7 +70,41 @@ QImage readFitted(const QString &absPath, const QSize &full, int box)
         if (!scaled.isEmpty())
             reader.setScaledSize(scaled);
     }
+}
+
+/// Read a file, asking the plugin for a reduced decode that fits @p box. The
+/// target size is computed exactly as fitToBox() computes it, so a file read
+/// this way and the same file read whole and then fitted agree pixel for pixel.
+QImage readFitted(const QString &absPath, const QSize &full, int box)
+{
+    QImageReader reader(absPath);
+    requestFit(reader, full, box);
     return reader.read();
+}
+
+/// The same, over bytes rather than a path.
+QImage readFitted(const QByteArray &data, const QSize &full, int box)
+{
+    QBuffer buffer;
+    buffer.setData(data);
+    if (!buffer.open(QIODevice::ReadOnly))
+        return {};
+    QImageReader reader(&buffer);
+    requestFit(reader, full, box);
+    return reader.read();
+}
+
+/// Dimensions of an encoded image without decoding its pixels.
+QSize probeSize(const QByteArray &data)
+{
+    QBuffer buffer;
+    buffer.setData(data);
+    if (!buffer.open(QIODevice::ReadOnly))
+        return {};
+    QImageReader reader(&buffer);
+    reader.setAutoTransform(true);
+    reader.setDecideFormatFromContent(true);
+    return reader.size();
 }
 
 } // namespace
@@ -202,6 +233,48 @@ DecodedImage decodeForIndex(const QString &absPath, const DecodeRequest &req)
 
     if (full.isValid()) {
         // Keep the true on-disk dimensions, not those of the reduced decode.
+        derived.width  = full.width();
+        derived.height = full.height();
+    }
+    return derived;
+}
+
+DecodedImage decodeFromData(const QByteArray &data, const DecodeRequest &req)
+{
+    DecodedImage out;
+    if (data.isEmpty()) {
+        out.error = QStringLiteral("empty file");
+        return out;
+    }
+
+    const QSize full = probeSize(data);
+    const int box = req.wantThumbnail ? std::max(req.thumbSize, kHashSourceBox) : kHashSourceBox;
+
+    const QImage image = readFitted(data, full, box);
+    if (image.isNull()) {
+        out.error = QStringLiteral("no image plugin could decode these bytes");
+        return out;
+    }
+
+    DecodedImage derived = decodeFromImage(image, req);
+
+    // Same reasoning as decodeForIndex(): a preview larger than the hash box
+    // means the decode above was bigger than the hash source, and two scales do
+    // not land where one does.
+    if (derived.ok && box != kHashSourceBox) {
+        const QImage exact = readFitted(data, full, kHashSourceBox);
+        if (!exact.isNull()) {
+            DecodeRequest hashOnly = req;
+            hashOnly.wantThumbnail = false;
+            const DecodedImage hashed = decodeFromImage(exact, hashOnly);
+            if (hashed.ok) {
+                derived.gray32  = hashed.gray32;
+                derived.gray9x8 = hashed.gray9x8;
+            }
+        }
+    }
+
+    if (full.isValid()) {
         derived.width  = full.width();
         derived.height = full.height();
     }

@@ -35,6 +35,8 @@ struct ScannedFile {
 /** @brief Everything learned about a single file during indexing. */
 struct IndexRecord {
     QString     rel;                        ///< Path relative to the indexed root.
+    QString     ref;                        ///< Git branch, or empty for the working tree.
+    QString     blob;                       ///< Git object id, set only when @ref ref is.
     qint64      size   = 0;                 ///< File size in bytes.
     qint64      mtime  = 0;                 ///< Last modification time, seconds since epoch.
     int         width  = 0;                 ///< Decoded pixel width.
@@ -64,6 +66,8 @@ struct CompactRow {
 struct FileInfoRow {
     qint64  id     = 0;  ///< Primary key in the @c files table.
     QString rel;         ///< Path relative to the indexed root.
+    QString ref;         ///< Git branch this version came from; empty means the working tree.
+    QString blob;        ///< Git object id, set only when @ref ref is.
     qint64  size   = 0;  ///< File size in bytes.
     qint64  mtime  = 0;  ///< Last modification time, seconds since epoch.
     int     width  = 0;  ///< Decoded pixel width.
@@ -109,6 +113,15 @@ struct IndexOptions {
     /// @name Neural local features
     /// Second indexing pass; needed for finding an object inside a screenshot.
     /// @{
+    /// Git branches to index besides the working tree. Empty means the working
+    /// tree alone, which is what a folder outside a repository can offer.
+    QStringList branches;
+
+    /// Treat @ref branches as the complete set the index should hold, dropping
+    /// any other branch already in it. Off by default so that an ordinary
+    /// re-index of the working tree cannot silently throw branches away.
+    bool        syncBranches = false;
+
     bool    extractFeatures    = false; ///< Run the extractor after hashing.
     QString featureModelPath;           ///< Path to the extractor .onnx file.
     int     featureMaxKeypoints = 512;  ///< Keypoints kept per image.
@@ -124,6 +137,8 @@ struct IndexStats {
     int    skipped   = 0; ///< Unchanged since the previous run.
     int    failed    = 0; ///< Present but undecodable.
     int    pruned    = 0; ///< Rows removed because the file is gone.
+    int    branchesIndexed = 0; ///< Git refs read this run.
+    int    branchesSkipped = 0; ///< Refs whose tip had not moved since last time.
     qint64 bytesRead = 0; ///< Total bytes hashed.
     qint64 elapsedMs = 0; ///< Wall-clock duration.
     bool   cancelled = false; ///< Run stopped early on request.

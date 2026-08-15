@@ -40,8 +40,11 @@ QueryResult queryByHashes(Database &db,
     std::vector<ScoredId> scored;
     scored.reserve(rows.size());
     for (const CompactRow &row : rows) {
-        if (row.phash == 0 && row.dhash == 0)
-            continue;
+        // No zero-hash guard here. A flat colour hashes to zero on both
+        // fingerprints because it has neither frequency content nor gradients,
+        // and skipping those rows made an ordinary 16x16 black square
+        // unfindable by its own file. loadCompactRows() already returns only
+        // rows that decoded, so a zero here means flat, not unread.
         const int distance = hamming(row.phash, phash) + hamming(row.dhash, dhash);
         if (distance > options.maxDistance)
             continue;

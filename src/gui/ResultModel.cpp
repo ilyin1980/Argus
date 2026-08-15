@@ -119,25 +119,38 @@ QVariant ResultModel::data(const QModelIndex &index, int role) const
         return QFileInfo(entry.row.rel).fileName();
 
     case SubtitleRole: {
+        // The branch goes first when there is one: which version of the file
+        // this is changes what the numbers after it even mean.
+        const QString origin = entry.row.ref.isEmpty()
+                                   ? QString()
+                                   : entry.row.ref + QStringLiteral("  ·  ");
         if (entry.score >= 0.0) {
-            return QStringLiteral("%1  ·  %2 %3")
-                .arg(entry.score, 0, 'f', 3)
-                .arg(entry.distance)
-                .arg(m_metricLabel);
+            return origin + QStringLiteral("%1  ·  %2 %3")
+                                .arg(entry.score, 0, 'f', 3)
+                                .arg(entry.distance)
+                                .arg(m_metricLabel);
         }
-        return QStringLiteral("%1×%2  ·  %3")
-            .arg(entry.row.width)
-            .arg(entry.row.height)
-            .arg(QLocale::system().formattedDataSize(entry.row.size));
+        return origin + QStringLiteral("%1×%2  ·  %3")
+                            .arg(entry.row.width)
+                            .arg(entry.row.height)
+                            .arg(QLocale::system().formattedDataSize(entry.row.size));
     }
 
     case AbsolutePathRole:
+        // A row read out of a branch has no file on disk. Handing back an
+        // absolute path for it would be a lie that the copy button, the path
+        // bar and every script downstream would then act on; git's own
+        // branch:path syntax is both true and directly usable.
+        if (!entry.row.ref.isEmpty())
+            return entry.row.ref + QLatin1Char(':') + entry.row.rel;
         return m_root.isEmpty()
                    ? entry.row.rel
                    : QDir::toNativeSeparators(iw::absolutePathFor(m_root, entry.row.rel));
 
     case Qt::ToolTipRole: {
-        QString text = entry.row.rel;
+        QString text = entry.row.ref.isEmpty()
+                           ? entry.row.rel
+                           : entry.row.ref + QLatin1Char(':') + entry.row.rel;
         text += QStringLiteral("\n%1 x %2, %3")
                     .arg(entry.row.width)
                     .arg(entry.row.height)
