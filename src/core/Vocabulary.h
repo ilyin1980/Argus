@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace iw {
+namespace argus {
 
 /** @brief Training parameters for the visual vocabulary. */
 struct VocabularyOptions {
@@ -100,4 +100,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

@@ -4,8 +4,8 @@ The package ships **two executables built from the same core library**:
 
 | | |
 |---|---|
-| `imageworker-gui` | the window you are reading this in |
-| `imageworker` | headless; everything the GUI does, plus indexing options the GUI does not expose |
+| `argus-gui` | the window you are reading this in |
+| `argus` | headless; everything the GUI does, plus indexing options the GUI does not expose |
 
 They share all logic, so a folder indexed by one is read by the other. Neither
 is a wrapper around the other — both link the same static core.
@@ -31,25 +31,25 @@ Rely on this when scripting; it is deliberately stable.
 ## Commands
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
 Every command takes `--db <path>` to put the index somewhere other than
-`<dir>/.imageworker`.
+`<dir>/.argus`.
 
 ### Setting up a folder for object search
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 `index` alone gives duplicate detection. `--features` adds the neural
@@ -60,7 +60,7 @@ not after every file.
 ### Searching
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 Pass `--roi x,y,w,h` when you know where the object is. It is the single most
@@ -70,8 +70,8 @@ finds roughly twice as many matching points.
 ### Other git branches
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 Images are read out of the object store, so nothing is checked out and the
@@ -95,8 +95,8 @@ ever downloaded on its own.
 ### Piping
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -104,7 +104,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## Checking the installation
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 Reports the ONNX Runtime and OpenCV versions, the available execution providers,
@@ -139,12 +139,12 @@ configuration.
 ## Building
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` builds without ONNX Runtime and OpenCV; the
+`ARGUS_WITH_INFERENCE=OFF` builds without ONNX Runtime and OpenCV; the
 duplicate finder still works, object search does not.
 
 The install step assembles a self-contained folder — every dependency beside the

@@ -7,7 +7,7 @@
 #include <QByteArray>
 #include <QString>
 
-namespace iw {
+namespace argus {
 
 /**
  * @brief Streamed BLAKE2b-256 of a whole file.
@@ -39,4 +39,4 @@ QByteArray dataContentHash(const QByteArray &data);
  */
 qint64 shortHash(const QByteArray &contentHash);
 
-} // namespace iw
+} // namespace argus

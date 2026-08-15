@@ -72,7 +72,7 @@ void BranchDialog::reload()
     }
 
     QString error;
-    const QStringList all = iw::git::branches(m_topLevel, m_remotes->isChecked(), &error);
+    const QStringList all = argus::git::branches(m_topLevel, m_remotes->isChecked(), &error);
 
     m_list->clear();
     for (const QString &name : all) {

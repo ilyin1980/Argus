@@ -51,7 +51,7 @@ New-Item -ItemType Directory -Force -Path $Output | Out-Null
 
 # Same trick the CMake target uses: include the checked-in Doxyfile and only
 # redirect the output, so there is one description of the documentation.
-$generated = Join-Path $env:TEMP "ImageWorker.Doxyfile"
+$generated = Join-Path $env:TEMP "Argus.Doxyfile"
 # Written through .NET rather than Set-Content: Windows PowerShell writes a
 # byte-order mark, and Doxygen reports the mark as an unknown character on
 # line 1 and then ignores the file.

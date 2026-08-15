@@ -19,7 +19,7 @@ models/
 
 # Generated indexes: databases, previews, descriptors, vocabularies.
 indexes/
-.imageworker/
+.argus/
 
 # Regenerate with tools/make-test-screenshot.ps1
 testdata/

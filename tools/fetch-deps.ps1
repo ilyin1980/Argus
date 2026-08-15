@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Download everything ImageWorker needs to build on Windows.
+    Download everything Argus needs to build on Windows.
 
 .DESCRIPTION
     Nothing here is committed to the repository: the runtimes are large, the

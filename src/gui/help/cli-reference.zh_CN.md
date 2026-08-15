@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| `imageworker-gui` | 你正在阅读本文的窗口 |
-| `imageworker` | 无界面；GUI 能做的一切，外加 GUI 未开放的索引选项 |
+| `argus-gui` | 你正在阅读本文的窗口 |
+| `argus` | 无界面；GUI 能做的一切，外加 GUI 未开放的索引选项 |
 
 两者共享全部逻辑，因此由其中一个建立的索引，另一个可以直接读取。它们互不包装 ——
 都链接同一个静态核心。
@@ -30,24 +30,24 @@
 ## 命令
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
-每条命令都接受 `--db <path>`，用于把索引放到 `<dir>/.imageworker` 以外的位置。
+每条命令都接受 `--db <path>`，用于把索引放到 `<dir>/.argus` 以外的位置。
 
 ### 为对象搜索准备目录
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 只运行 `index` 即可获得重复检测。`--features` 会加上神经网络描述子，`vocab` 则在
@@ -57,7 +57,7 @@ imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
 ### 搜索
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 当你知道对象大致在哪里时，请传入 `--roi x,y,w,h`。这是最有效的选项：在框定区域上
@@ -66,8 +66,8 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 ### 其他 git 分支
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 图片从对象库中读取，因此不会检出任何内容，工作区保持原样。所列出的集合就是完整
@@ -88,8 +88,8 @@ git 自己的 `分支:路径` 语法，`git show` 可以直接接受；`--json` 
 ### 管道
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -97,7 +97,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## 检查安装
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 报告 ONNX Runtime 与 OpenCV 的版本、可用的执行提供程序，以及在当前驱动上是否真的
@@ -128,12 +128,12 @@ imageworker doctor
 ## 构建
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` 表示不依赖 ONNX Runtime 和 OpenCV 进行构建；重复
+`ARGUS_WITH_INFERENCE=OFF` 表示不依赖 ONNX Runtime 和 OpenCV 进行构建；重复
 查找仍然可用，对象搜索则不可用。
 
 安装步骤会组装出一个自包含的目录 —— 所有依赖都在可执行文件旁边，不从 `PATH` 读取

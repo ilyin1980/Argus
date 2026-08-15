@@ -31,7 +31,7 @@ class QPushButton;
 class QSpinBox;
 class QTabWidget;
 
-namespace iw {
+namespace argus {
 class Database;
 }
 
@@ -44,7 +44,7 @@ QT_END_NAMESPACE
 /**
  * @brief Main application window.
  *
- * Holds no search logic: every operation is a call into imageworker_core, run
+ * Holds no search logic: every operation is a call into argus_core, run
  * on a worker thread so that a pass over a large index never freezes the UI.
  */
 class MainWindow : public QMainWindow
@@ -100,7 +100,7 @@ private slots:
     void chooseBranches();
     void startIndexing();
     void cancelCurrentTask();
-    void onIndexFinished(const iw::IndexStats &stats, const QString &error);
+    void onIndexFinished(const argus::IndexStats &stats, const QString &error);
 
     /**
      * @brief Train the vocabulary and shortlist index after descriptors appear.
@@ -112,14 +112,14 @@ private slots:
     void buildVocabulary();
 
     void findDuplicates();
-    void onDuplicatesReady(const iw::DuplicateReport &report);
+    void onDuplicatesReady(const argus::DuplicateReport &report);
     void onGroupSelected(int row);
 
     void chooseQueryImage();
     void pasteQueryImage();
     void runQuery();
-    void onQueryReady(const iw::QueryResult &result);
-    void onFindReady(const QList<iw::FindResult> &results);
+    void onQueryReady(const argus::QueryResult &result);
+    void onFindReady(const QList<argus::FindResult> &results);
 
     /**
      * @brief Search the index for near-identical copies of one file.
@@ -203,7 +203,7 @@ private:
      * temporary file first. Extracting on demand beats keeping every branch
      * version on disk for a click that may never come.
      */
-    void openRow(const iw::FileInfoRow &row);
+    void openRow(const argus::FileInfoRow &row);
 
     /** @brief Where the index would live if the user has not chosen a location. */
     QString automaticStorageDir() const;
@@ -271,12 +271,12 @@ private:
     HelpDialog *m_help = nullptr;
 
     IndexController              *m_indexController = nullptr;
-    std::unique_ptr<iw::Database> m_database;
+    std::unique_ptr<argus::Database> m_database;
 
     /// Kept between searches: constructing one loads two ONNX models and spends
     /// seconds compiling shaders, which is pure waste on every search after the
     /// first. Discarded whenever the index or the models it was built for change.
-    std::unique_ptr<iw::ObjectFinder> m_finder;
+    std::unique_ptr<argus::ObjectFinder> m_finder;
     QString                           m_finderKey;
     QString                       m_root;
     QString                       m_dbPath;
@@ -289,7 +289,7 @@ private:
     QString m_repoTopLevel;
     QString m_repoCurrentRef;
 
-    QList<iw::DuplicateGroup> m_groups;
+    QList<argus::DuplicateGroup> m_groups;
     std::atomic_bool          m_taskCancel{false};
     bool                      m_busy = false;
 };

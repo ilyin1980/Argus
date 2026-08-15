@@ -22,7 +22,7 @@
 
 class QProcess;
 
-namespace iw::git {
+namespace argus::git {
 
 /** @brief Where a repository lives, and where the indexed folder sits inside it. */
 struct RepoInfo {
@@ -154,4 +154,4 @@ private:
     int                       m_missingLfs = 0;
 };
 
-} // namespace iw::git
+} // namespace argus::git

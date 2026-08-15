@@ -5,7 +5,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 
-namespace iw {
+namespace argus {
 
 QJsonObject toJson(const FileInfoRow &row, const QString &root)
 {
@@ -92,4 +92,4 @@ QString toLine(const QJsonObject &object)
     return QString::fromUtf8(QJsonDocument(object).toJson(QJsonDocument::Compact));
 }
 
-} // namespace iw
+} // namespace argus

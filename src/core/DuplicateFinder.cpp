@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -335,4 +335,4 @@ DuplicateReport findDuplicates(Database &db,
     return report;
 }
 
-} // namespace iw
+} // namespace argus

@@ -16,7 +16,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 class Database;
 
@@ -70,4 +70,4 @@ QueryResult queryByHashes(Database &db,
                           quint64 dhash,
                           const QueryOptions &options);
 
-} // namespace iw
+} // namespace argus

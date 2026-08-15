@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -314,4 +314,4 @@ DecodedImage decodeFromImage(const QImage &source, const DecodeRequest &req)
     return out;
 }
 
-} // namespace iw
+} // namespace argus

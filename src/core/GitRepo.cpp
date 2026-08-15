@@ -7,7 +7,7 @@
 #include <QFileInfo>
 #include <QProcess>
 
-namespace iw::git {
+namespace argus::git {
 
 namespace {
 
@@ -388,4 +388,4 @@ QByteArray BlobReader::read(const QString &oid, QString *error)
     return data;
 }
 
-} // namespace iw::git
+} // namespace argus::git

@@ -7,16 +7,16 @@
 #include <limits>
 #include <vector>
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 #include "core/OnnxProvider.h"
 
 #include <opencv2/calib3d.hpp>
 #include <opencv2/core.hpp>
 #endif
 
-namespace iw {
+namespace argus {
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 namespace {
 
@@ -154,7 +154,7 @@ QString shapeRejection(const QPolygonF &outline,
 } // namespace
 
 struct FeatureMatcher::Impl {
-    Ort::Env env{ ORT_LOGGING_LEVEL_ERROR, "imageworker-matcher" };
+    Ort::Env env{ ORT_LOGGING_LEVEL_ERROR, "argus-matcher" };
     std::unique_ptr<Ort::Session> session;
     Ort::AllocatorWithDefaultOptions allocator;
 
@@ -376,7 +376,7 @@ GeometryResult verifyHomography(const FeatureSet &query,
     return result;
 }
 
-#else // IMAGEWORKER_WITH_INFERENCE
+#else // ARGUS_WITH_INFERENCE
 
 struct FeatureMatcher::Impl {};
 
@@ -406,6 +406,6 @@ GeometryResult verifyHomography(const FeatureSet &, const FeatureSet &,
     return {};
 }
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE
 
-} // namespace iw
+} // namespace argus

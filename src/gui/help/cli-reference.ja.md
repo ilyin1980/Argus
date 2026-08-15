@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| `imageworker-gui` | この文章を読んでいるウィンドウ |
-| `imageworker` | 画面なし。GUI にできることすべてに加え、GUI が出していないインデックスの選択肢 |
+| `argus-gui` | この文章を読んでいるウィンドウ |
+| `argus` | 画面なし。GUI にできることすべてに加え、GUI が出していないインデックスの選択肢 |
 
 両者はロジックをすべて共有するので、一方が作ったインデックスをもう一方が読めます。
 どちらも他方の薄い皮ではなく、同じ静的コアをリンクしています。
@@ -31,25 +31,25 @@
 ## コマンド
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
-どのコマンドも `--db <path>` を取り、インデックスを `<dir>/.imageworker` 以外の
+どのコマンドも `--db <path>` を取り、インデックスを `<dir>/.argus` 以外の
 場所に置けます。
 
 ### オブジェクト検索用にフォルダーを用意する
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 `index` だけでも重複検出はできます。`--features` がニューラル記述子を加え、`vocab`
@@ -60,7 +60,7 @@ imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
 ### 検索
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 オブジェクトの位置が分かっているときは `--roi x,y,w,h` を渡してください。数ある
@@ -70,8 +70,8 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 ### ほかの git ブランチ
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 画像はオブジェクトストアから読み取ります。チェックアウトは行われず、作業ツリーは
@@ -94,8 +94,8 @@ Git LFS では、オブジェクトはローカルの LFS ストアから解決�
 ### パイプ
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -103,7 +103,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## インストールの確認
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 ONNX Runtime と OpenCV のバージョン、利用できる実行プロバイダー、そしてこのドライバー
@@ -136,12 +136,12 @@ ONNX Runtime と OpenCV のバージョン、利用できる実行プロバイ�
 ## ビルド
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` は ONNX Runtime と OpenCV なしでビルドします。
+`ARGUS_WITH_INFERENCE=OFF` は ONNX Runtime と OpenCV なしでビルドします。
 重複検出は動き続けますが、オブジェクト検索は動きません。
 
 インストール手順は自己完結したフォルダーを組み立てます。依存物はすべて実行ファイルの

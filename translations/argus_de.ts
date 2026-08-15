@@ -49,13 +49,13 @@
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="18" />
         <location filename="../src/gui/HelpDialog.cpp" line="85" />
-        <source>ImageWorker — Help</source>
-        <translation>ImageWorker — Hilfe</translation>
+        <source>Argus — Help</source>
+        <translation>Argus — Hilfe</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="57" />
-        <source>Using ImageWorker</source>
-        <translation>ImageWorker verwenden</translation>
+        <source>Using Argus</source>
+        <translation>Argus verwenden</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="58" />
@@ -72,8 +72,8 @@
     <name>MainWindow</name>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="14" />
-        <source>ImageWorker</source>
-        <translation>ImageWorker</translation>
+        <source>Argus</source>
+        <translation>Argus</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="54" />
@@ -110,11 +110,11 @@
     <message>
         <location filename="../src/gui/MainWindow.ui" line="105" />
         <source>Directory holding the index database, previews and descriptors.
-Defaults to .imageworker inside the image folder; point it elsewhere to
+Defaults to .argus inside the image folder; point it elsewhere to
 keep a read-only or network share untouched, or to put the index on a
 faster disk.</source>
         <translation>Ordner mit Indexdatenbank, Vorschaubildern und Deskriptoren.
-Standardmäßig .imageworker im Bilderordner; wählen Sie einen anderen,
+Standardmäßig .argus im Bilderordner; wählen Sie einen anderen,
 um eine schreibgeschützte oder Netzwerkfreigabe unangetastet zu lassen
 oder den Index auf eine schnellere Platte zu legen.</translation>
     </message>
@@ -130,11 +130,11 @@ oder den Index auf eine schnellere Platte zu legen.</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="132" />
-        <source>Also build the neural descriptors that let ImageWorker locate an
+        <source>Also build the neural descriptors that let Argus locate an
 asset inside a screenshot. Roughly doubles indexing time and adds
 about 40 KB per image; without them only duplicate detection and
 whole-image similarity work.</source>
-        <translation>Zusätzlich die neuronalen Deskriptoren erzeugen, mit denen ImageWorker
+        <translation>Zusätzlich die neuronalen Deskriptoren erzeugen, mit denen Argus
 ein Asset in einem Screenshot findet. Verdoppelt die Indizierungszeit
 ungefähr und kostet rund 40 KB pro Bild; ohne sie funktionieren nur
 Duplikatsuche und Gesamtbildähnlichkeit.</translation>
@@ -358,13 +358,13 @@ nutzlos, um ein kleines Objekt in einem Screenshot zu finden.</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="316" />
-        <source>About ImageWorker</source>
-        <translation>Über ImageWorker</translation>
+        <source>About Argus</source>
+        <translation>Über Argus</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="317" />
-        <source>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;imageworker-gui&lt;/b&gt; and the headless &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;Findet, welche Bild-Assets in einem Screenshot vorkommen und wo; und gruppiert Duplikate in einem Ordner.&lt;/p&gt;&lt;p&gt;Wird als zwei Programme aus einer gemeinsamen Bibliothek ausgeliefert: &lt;b&gt;imageworker-gui&lt;/b&gt; und das Kommandozeilenprogramm &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;&lt;b&gt;F1&lt;/b&gt; öffnet das Handbuch.&lt;/p&gt;</translation>
+        <source>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;argus-gui&lt;/b&gt; and the headless &lt;b&gt;argus&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;Findet, welche Bild-Assets in einem Screenshot vorkommen und wo; und gruppiert Duplikate in einem Ordner.&lt;/p&gt;&lt;p&gt;Wird als zwei Programme aus einer gemeinsamen Bibliothek ausgeliefert: &lt;b&gt;argus-gui&lt;/b&gt; und das Kommandozeilenprogramm &lt;b&gt;argus&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;&lt;b&gt;F1&lt;/b&gt; öffnet das Handbuch.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="358" />
@@ -594,11 +594,11 @@ nutzlos, um ein kleines Objekt in einem Screenshot zu finden.</translation>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1082" />
         <source>This index has no descriptors or vocabulary yet. Build them with:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</source>
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</source>
         <translation>Dieser Index hat noch keine Deskriptoren und kein Vokabular. So werden sie erzeugt:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</translation>
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1097" />
@@ -611,14 +611,14 @@ nutzlos, um ein kleines Objekt in einem Screenshot zu finden.</translation>
 
 Build them first:
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</source>
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</source>
         <translation>Dieser Index hat noch keine lokalen Merkmalsdeskriptoren, deshalb kann kein Objekt in einem Bild gefunden werden.
 
 Erzeugen Sie sie zuerst:
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</translation>
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1132" />

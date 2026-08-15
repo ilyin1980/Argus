@@ -10,7 +10,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 class Database;
 }
 
@@ -42,19 +42,19 @@ public:
      * @param database Open database, or @c nullptr to detach.
      * @param root     Root the rows are relative to, used for fallback loading.
      */
-    void setSource(iw::Database *database, const QString &root);
+    void setSource(argus::Database *database, const QString &root);
 
     /**
      * @brief Replace the contents with plain rows.
      * @param rows Rows to show, in display order.
      */
-    void setRows(const QList<iw::FileInfoRow> &rows);
+    void setRows(const QList<argus::FileInfoRow> &rows);
 
     /**
      * @brief Replace the contents with scored query hits.
      * @param matches Hits to show, in display order.
      */
-    void setMatches(const QList<iw::Match> &matches);
+    void setMatches(const QList<argus::Match> &matches);
 
     /**
      * @brief Name the secondary number shown under each preview.
@@ -73,7 +73,7 @@ public:
      * @param index Model index.
      * @return The row, or a default-constructed one if @p index is invalid.
      */
-    iw::FileInfoRow rowAt(const QModelIndex &index) const;
+    argus::FileInfoRow rowAt(const QModelIndex &index) const;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     QVariant data(const QModelIndex &index, int role) const override;
@@ -81,7 +81,7 @@ public:
 private:
     /** @brief One displayed entry: the row plus its optional score. */
     struct Entry {
-        iw::FileInfoRow row;
+        argus::FileInfoRow row;
         double          score    = -1.0;
         int             distance = -1;
     };
@@ -89,7 +89,7 @@ private:
     QPixmap thumbnailFor(const Entry &entry) const;
 
     QList<Entry>                    m_entries;
-    iw::Database                   *m_database = nullptr;
+    argus::Database                   *m_database = nullptr;
     QString                         m_root;
     mutable QHash<qint64, QPixmap>  m_cache;
     QPixmap                         m_placeholder;

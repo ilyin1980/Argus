@@ -1,6 +1,6 @@
 #include "core/TemplateMatcher.h"
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
@@ -10,7 +10,7 @@
 #include <limits>
 #include <vector>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -242,20 +242,20 @@ TemplateHit matchByTemplate(const QImage &query,
     return hit;
 }
 
-} // namespace iw
+} // namespace argus
 
-#else // IMAGEWORKER_WITH_INFERENCE
+#else // ARGUS_WITH_INFERENCE
 
-namespace iw {
+namespace argus {
 
 TemplateHit matchByTemplate(const QImage &, const QImage &, const TemplateOptions &)
 {
     TemplateHit hit;
     hit.rejection = QStringLiteral(
-        "built without OpenCV; reconfigure with -DIMAGEWORKER_WITH_INFERENCE=ON");
+        "built without OpenCV; reconfigure with -DARGUS_WITH_INFERENCE=ON");
     return hit;
 }
 
-} // namespace iw
+} // namespace argus
 
 #endif

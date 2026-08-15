@@ -5,7 +5,7 @@
 #include <cmath>
 #include <numbers>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -105,4 +105,4 @@ quint64 differenceHash(const QImage &gray9x8)
     return hash;
 }
 
-} // namespace iw
+} // namespace argus

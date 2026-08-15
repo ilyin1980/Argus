@@ -16,7 +16,7 @@
 #include <functional>
 #include <memory>
 
-namespace iw {
+namespace argus {
 
 class Database;
 class DescriptorStore;
@@ -24,8 +24,10 @@ class Vocabulary;
 
 /** @brief One shortlisted candidate. */
 struct BowHit {
-    qint64 fileId = 0;
-    float  score  = 0.0f; ///< Cosine similarity of the tf-idf histograms, 0..1.
+    /// Primary key in the @c features table - a tile, not a file. One large
+    /// picture is several of these.
+    qint64 recordId = 0;
+    float  score    = 0.0f; ///< Cosine similarity of the tf-idf histograms, 0..1.
 };
 
 /** @brief Size of a built index. */
@@ -102,4 +104,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

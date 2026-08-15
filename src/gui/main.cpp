@@ -8,6 +8,7 @@
  */
 
 #include <QApplication>
+#include <QIcon>
 #include <QCommandLineParser>
 #include <QSettings>
 
@@ -18,9 +19,12 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    QCoreApplication::setApplicationName(QStringLiteral("ImageWorker"));
-    QCoreApplication::setOrganizationName(QStringLiteral("ImageWorker"));
-    QCoreApplication::setApplicationVersion(QStringLiteral(IMAGEWORKER_VERSION));
+    // Compiled in, not loaded from disk: an icon that can go missing is an
+    // icon that will, in exactly the packaged build nobody tests.
+    app.setWindowIcon(QIcon(QStringLiteral(":/branding/argus-icon-256.png")));
+    QCoreApplication::setApplicationName(QStringLiteral("Argus"));
+    QCoreApplication::setOrganizationName(QStringLiteral("Argus"));
+    QCoreApplication::setApplicationVersion(QStringLiteral(ARGUS_VERSION));
 
     // Before the parser, so even --help comes out in the user's language, and
     // before any window exists, so nothing is ever seen in the wrong one.

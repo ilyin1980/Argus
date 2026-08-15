@@ -1,0 +1,47 @@
+<svg width="900" height="300" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="iris2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#38e8c8"/>
+      <stop offset="0.55" stop-color="#12a8b8"/>
+      <stop offset="1" stop-color="#0a5f7a"/>
+    </radialGradient>
+    <radialGradient id="glow2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5cffe0" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#5cffe0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="word" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eafff9"/>
+      <stop offset="1" stop-color="#8fd8cf"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="300" fill="#0c1424"/>
+
+  <!-- ===== MARK ===== -->
+  <g transform="translate(150,150)">
+    <circle r="118" fill="none" stroke="#2f4a72" stroke-width="5" opacity="0.6"/>
+    <circle r="100" fill="none" stroke="#3ad0c0" stroke-width="3" stroke-dasharray="8 13" opacity="0.75"/>
+
+    <path d="M-108 0 Q0 -86 108 0 Q0 86 -108 0 Z" fill="#0c1424" stroke="#4fe8d0" stroke-width="7" stroke-linejoin="round"/>
+
+    <circle r="64" fill="url(#glow2)" opacity="0.5"/>
+    <circle r="52" fill="url(#iris2)"/>
+    <g stroke="#0a4a5a" stroke-width="2.5" opacity="0.5" fill="none">
+      <circle r="41"/>
+      <circle r="30"/>
+    </g>
+    <circle r="23" fill="#08111f"/>
+    <circle cx="-12" cy="-12" r="8" fill="#eafff9" opacity="0.9"/>
+
+    <g stroke="#3ad0c0" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.85">
+      <path d="M-72 -72 h22 M-72 -72 v22"/>
+      <path d="M72 -72 h-22 M72 -72 v22"/>
+      <path d="M-72 72 h22 M-72 72 v-22"/>
+      <path d="M72 72 h-22 M72 72 v-22"/>
+    </g>
+  </g>
+
+  <!-- ===== WORDMARK ===== -->
+  <text x="320" y="168" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="96" font-weight="700" letter-spacing="4" fill="url(#word)">ARGUS</text>
+  <text x="322" y="212" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="23" font-weight="400" letter-spacing="7" fill="#5f8a9c">VISUAL SIMILARITY SEARCH</text>
+</svg>

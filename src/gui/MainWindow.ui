@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>ImageWorker</string>
+   <string>Argus</string>
   </property>
   <property name="acceptDrops">
    <bool>true</bool>
@@ -103,7 +103,7 @@
         <widget class="QLineEdit" name="storageEdit">
          <property name="toolTip">
           <string>Directory holding the index database, previews and descriptors.
-Defaults to .imageworker inside the image folder; point it elsewhere to
+Defaults to .argus inside the image folder; point it elsewhere to
 keep a read-only or network share untouched, or to put the index on a
 faster disk.</string>
          </property>
@@ -129,7 +129,7 @@ faster disk.</string>
        <item row="0" column="5">
         <widget class="QCheckBox" name="featuresCheck">
          <property name="toolTip">
-          <string>Also build the neural descriptors that let ImageWorker locate an
+          <string>Also build the neural descriptors that let Argus locate an
 asset inside a screenshot. Roughly doubles indexing time and adds
 about 40 KB per image; without them only duplicate detection and
 whole-image similarity work.</string>

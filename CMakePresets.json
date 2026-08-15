@@ -10,7 +10,8 @@
       "installDir": "${sourceDir}/dist",
       "cacheVariables": {
         "CMAKE_MAKE_PROGRAM": "C:/Qt/Tools/Ninja/ninja.exe",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "ARGUS_WITH_INFERENCE": "ON"
       }
     },
     {

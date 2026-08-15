@@ -15,7 +15,7 @@
 
 #include <memory>
 
-namespace iw {
+namespace argus {
 
 /** @brief Keypoints and descriptors for one image. */
 struct FeatureSet {
@@ -92,4 +92,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

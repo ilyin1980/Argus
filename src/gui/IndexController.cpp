@@ -4,14 +4,14 @@
 
 IndexController::IndexController(QObject *parent)
     : QObject(parent)
-    , m_indexer(new iw::Indexer)
+    , m_indexer(new argus::Indexer)
 {
     // No metatype registration is needed: work crosses threads inside lambdas
     // that capture by value, never through queued signal arguments.
     m_indexer->moveToThread(&m_thread);
     connect(&m_thread, &QThread::finished, m_indexer, &QObject::deleteLater);
-    connect(m_indexer, &iw::Indexer::progress, this, &IndexController::progress);
-    connect(m_indexer, &iw::Indexer::message, this, &IndexController::message);
+    connect(m_indexer, &argus::Indexer::progress, this, &IndexController::progress);
+    connect(m_indexer, &argus::Indexer::message, this, &IndexController::message);
     m_thread.start();
 }
 
@@ -22,7 +22,7 @@ IndexController::~IndexController()
     m_thread.wait();
 }
 
-void IndexController::start(const iw::IndexOptions &options)
+void IndexController::start(const argus::IndexOptions &options)
 {
     if (m_running)
         return;
@@ -33,7 +33,7 @@ void IndexController::start(const iw::IndexOptions &options)
     // comes back to the UI thread through the default connection type.
     QMetaObject::invokeMethod(m_indexer, [this, options] {
         QString error;
-        const iw::IndexStats stats = m_indexer->run(options, &error);
+        const argus::IndexStats stats = m_indexer->run(options, &error);
         QMetaObject::invokeMethod(this, [this, stats, error] {
             m_running = false;
             emit finished(stats, error);

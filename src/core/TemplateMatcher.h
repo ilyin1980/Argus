@@ -18,7 +18,7 @@
 #include <QRectF>
 #include <QString>
 
-namespace iw {
+namespace argus {
 
 /** @brief Knobs for one correlation search. */
 struct TemplateOptions {
@@ -93,4 +93,4 @@ TemplateHit matchByTemplate(const QImage &query,
                             const QImage &asset,
                             const TemplateOptions &options = {});
 
-} // namespace iw
+} // namespace argus

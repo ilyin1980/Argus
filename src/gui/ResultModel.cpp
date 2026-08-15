@@ -20,7 +20,7 @@ ResultModel::ResultModel(QObject *parent)
     painter.end();
 }
 
-void ResultModel::setSource(iw::Database *database, const QString &root)
+void ResultModel::setSource(argus::Database *database, const QString &root)
 {
     beginResetModel();
     m_database = database;
@@ -29,22 +29,22 @@ void ResultModel::setSource(iw::Database *database, const QString &root)
     endResetModel();
 }
 
-void ResultModel::setRows(const QList<iw::FileInfoRow> &rows)
+void ResultModel::setRows(const QList<argus::FileInfoRow> &rows)
 {
     beginResetModel();
     m_entries.clear();
     m_entries.reserve(rows.size());
-    for (const iw::FileInfoRow &row : rows)
+    for (const argus::FileInfoRow &row : rows)
         m_entries.append(Entry{ row, -1.0, -1 });
     endResetModel();
 }
 
-void ResultModel::setMatches(const QList<iw::Match> &matches)
+void ResultModel::setMatches(const QList<argus::Match> &matches)
 {
     beginResetModel();
     m_entries.clear();
     m_entries.reserve(matches.size());
-    for (const iw::Match &match : matches)
+    for (const argus::Match &match : matches)
         m_entries.append(Entry{ match.file, match.score, match.distance });
     endResetModel();
 }
@@ -65,7 +65,7 @@ void ResultModel::clear()
     endResetModel();
 }
 
-iw::FileInfoRow ResultModel::rowAt(const QModelIndex &index) const
+argus::FileInfoRow ResultModel::rowAt(const QModelIndex &index) const
 {
     if (!index.isValid() || index.row() >= m_entries.size())
         return {};
@@ -91,7 +91,7 @@ QPixmap ResultModel::thumbnailFor(const Entry &entry) const
     }
     if (pixmap.isNull() && !m_root.isEmpty()) {
         // No stored preview (indexed with --no-thumbs): fall back to the file.
-        const QString absolute = iw::absolutePathFor(m_root, entry.row.rel);
+        const QString absolute = argus::absolutePathFor(m_root, entry.row.rel);
         QPixmap full;
         if (full.load(absolute))
             pixmap = full.scaled(256, 256, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -145,7 +145,7 @@ QVariant ResultModel::data(const QModelIndex &index, int role) const
             return entry.row.ref + QLatin1Char(':') + entry.row.rel;
         return m_root.isEmpty()
                    ? entry.row.rel
-                   : QDir::toNativeSeparators(iw::absolutePathFor(m_root, entry.row.rel));
+                   : QDir::toNativeSeparators(argus::absolutePathFor(m_root, entry.row.rel));
 
     case Qt::ToolTipRole: {
         QString text = entry.row.ref.isEmpty()

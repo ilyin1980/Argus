@@ -1,6 +1,9 @@
-# ImageWorker gebruiken
+# Argus gebruiken
 
-ImageWorker beantwoordt twee vragen over een map met `png`- en `jpg`-bestanden:
+> *Argus Panoptes, de reus met honderd ogen: de helft van zijn ogen bleef open
+> terwijl de rest sliep, zodat hem nooit iets ontging.*
+
+Argus beantwoordt twee vragen over een map met `png`- en `jpg`-bestanden:
 
 - **Waar komt dit asset voor in mijn schermafbeelding?** — de hoofdtaak.
 - **Welke bestanden in deze map zijn duplicaten?** — de bijtaak.
@@ -10,10 +13,10 @@ ImageWorker beantwoordt twee vragen over een map met `png`- en `jpg`-bestanden:
 ## 1. Richt het op een map
 
 **Afbeeldingen** is de map waarin gezocht wordt. **Index in** is de plek waar
-ImageWorker zijn eigen gegevens bewaart: de database, de voorbeelden en de
+Argus zijn eigen gegevens bewaart: de database, de voorbeelden en de
 descriptoren.
 
-Standaard komt de index in een verborgen map `.imageworker` binnen de
+Standaard komt de index in een verborgen map `.argus` binnen de
 afbeeldingenmap. Wijzig **Index in** wanneer de afbeeldingen op een
 alleen-lezen of netwerkshare staan, wanneer u liever niets toevoegt aan andermans
 repository, of wanneer de index op een snellere schijf thuishoort. **Standaard**
@@ -72,8 +75,8 @@ Staat **Object vinden** uit, dan heeft de index nog geen descriptoren. Maak ze
 eenmalig via de opdrachtregel:
 
 ```
-imageworker index "<afbeeldingenmap>" --db "<indexmap>\index.db" --features
-imageworker vocab "<afbeeldingenmap>" --db "<indexmap>\index.db"
+argus index "<afbeeldingenmap>" --db "<indexmap>\index.db" --features
+argus vocab "<afbeeldingenmap>" --db "<indexmap>\index.db"
 ```
 
 ---
@@ -132,7 +135,7 @@ helemaal overgeslagen, en binnen een branch worden alleen bestanden herlezen
 waarvan de inhoud echt is veranderd.
 
 > **Git LFS**: de afbeeldingen komen uit uw lokale LFS-opslag. Is een branch nooit
-> opgehaald, dan meldt ImageWorker hoeveel objecten ontbreken en dat
+> opgehaald, dan meldt Argus hoeveel objecten ontbreken en dat
 > `git lfs fetch --all` ze binnenhaalt — zelf downloadt het niets.
 
 ---

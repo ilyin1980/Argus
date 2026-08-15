@@ -1,6 +1,9 @@
-# ImageWorker verwenden
+# Argus verwenden
 
-ImageWorker beantwortet zwei Fragen über einen Ordner mit `png`- und
+> *Argos Panoptes, der hundertäugige Riese: die Hälfte seiner Augen blieb offen,
+> während die anderen schliefen, sodass ihm nie etwas entging.*
+
+Argus beantwortet zwei Fragen über einen Ordner mit `png`- und
 `jpg`-Dateien:
 
 - **Wo taucht dieses Asset in meinem Screenshot auf?** — die Hauptaufgabe.
@@ -11,10 +14,10 @@ ImageWorker beantwortet zwei Fragen über einen Ordner mit `png`- und
 ## 1. Auf einen Ordner richten
 
 **Bilder** ist der zu durchsuchende Ordner. **Index in** ist der Ort, an dem
-ImageWorker seine eigenen Daten ablegt: die Datenbank, die Vorschaubilder und
+Argus seine eigenen Daten ablegt: die Datenbank, die Vorschaubilder und
 die Deskriptoren.
 
-Standardmäßig landet der Index in einem versteckten Ordner `.imageworker`
+Standardmäßig landet der Index in einem versteckten Ordner `.argus`
 innerhalb des Bilderordners. Ändern Sie **Index in**, wenn die Bilder auf einer
 schreibgeschützten oder Netzwerkfreigabe liegen, wenn Sie einem fremden
 Repository nichts hinzufügen möchten, oder wenn der Index auf eine schnellere
@@ -73,8 +76,8 @@ Ist **Objekt im Bild finden** deaktiviert, hat der Index noch keine Deskriptoren
 Erzeugen Sie sie einmalig auf der Befehlszeile:
 
 ```
-imageworker index "<Bilderordner>" --db "<Indexordner>\index.db" --features
-imageworker vocab "<Bilderordner>" --db "<Indexordner>\index.db"
+argus index "<Bilderordner>" --db "<Indexordner>\index.db" --features
+argus vocab "<Bilderordner>" --db "<Indexordner>\index.db"
 ```
 
 ---
@@ -134,7 +137,7 @@ wird ganz übersprungen, und innerhalb eines Branches werden nur Dateien neu
 gelesen, deren Inhalt sich tatsächlich geändert hat.
 
 > **Git LFS**: die Bilder kommen aus Ihrem lokalen LFS-Speicher. Wurde ein Branch
-> nie geholt, nennt ImageWorker die Zahl der fehlenden Objekte und dass
+> nie geholt, nennt Argus die Zahl der fehlenden Objekte und dass
 > `git lfs fetch --all` sie besorgt — von sich aus lädt es nichts herunter.
 
 ---

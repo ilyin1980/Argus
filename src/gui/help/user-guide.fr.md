@@ -1,6 +1,9 @@
-# Utiliser ImageWorker
+# Utiliser Argus
 
-ImageWorker répond à deux questions au sujet d'un dossier de fichiers `png` et
+> *Argos Panoptès, le géant aux cent yeux : la moitié de ses yeux restaient
+> ouverts pendant que les autres dormaient, si bien que rien ne lui échappait.*
+
+Argus répond à deux questions au sujet d'un dossier de fichiers `png` et
 `jpg` :
 
 - **Où cet asset apparaît-il dans ma capture d'écran ?** — la tâche principale.
@@ -11,10 +14,10 @@ ImageWorker répond à deux questions au sujet d'un dossier de fichiers `png` et
 ## 1. Désigner un dossier
 
 **Images** est le dossier à explorer. **Index dans** est l'endroit où
-ImageWorker garde ses propres données : la base, les aperçus et les
+Argus garde ses propres données : la base, les aperçus et les
 descripteurs.
 
-Par défaut l'index va dans un dossier caché `.imageworker` à l'intérieur du
+Par défaut l'index va dans un dossier caché `.argus` à l'intérieur du
 dossier d'images. Changez **Index dans** lorsque les images vivent sur un
 partage réseau ou en lecture seule, lorsque vous préférez ne rien ajouter au
 dépôt de quelqu'un d'autre, ou lorsque l'index a sa place sur un disque plus
@@ -75,8 +78,8 @@ Si **Localiser un objet** est désactivé, c'est que l'index n'a pas encore de
 descripteurs. Construisez-les une fois en ligne de commande :
 
 ```
-imageworker index "<dossier d'images>" --db "<dossier d'index>\index.db" --features
-imageworker vocab "<dossier d'images>" --db "<dossier d'index>\index.db"
+argus index "<dossier d'images>" --db "<dossier d'index>\index.db" --features
+argus vocab "<dossier d'images>" --db "<dossier d'index>\index.db"
 ```
 
 ---
@@ -136,7 +139,7 @@ sautée, et à l'intérieur d'une branche seuls les fichiers dont le contenu a
 réellement changé sont relus.
 
 > **Git LFS** : les images proviennent de votre dépôt LFS local. Si une branche
-> n'a jamais été récupérée, ImageWorker indique combien d'objets manquent et que
+> n'a jamais été récupérée, Argus indique combien d'objets manquent et que
 > `git lfs fetch --all` les rapatrie — il ne télécharge jamais rien de lui-même.
 
 ---

@@ -22,14 +22,14 @@
     Where screenshot.png and scaled.png are written.
 
 .EXAMPLE
-    .\tools\make-test-screenshot.ps1 -OutDir D:\ImageWorker\testdata
+    .\tools\make-test-screenshot.ps1 -OutDir D:\Argus\testdata
 #>
 param(
     [string]   $Target      = "<path to a sprite with an alpha channel>",
     [string[]] $Distractors = @(
         "<path to a sprite with an alpha channel>",
         "<path to a sprite with an alpha channel>"),
-    [string]   $OutDir      = "D:\ImageWorker\testdata",
+    [string]   $OutDir      = "D:\Argus\testdata",
     [int]      $Width       = 1280,
     [int]      $Height      = 720,
     [double]   $Scale       = 0.62,

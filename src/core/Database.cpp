@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <atomic>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -48,7 +48,7 @@ bool fail(QString *error, const QSqlQuery &query, const char *what)
 } // namespace
 
 Database::Database()
-    : m_connectionName(QStringLiteral("imageworker_%1")
+    : m_connectionName(QStringLiteral("argus_%1")
                            .arg(g_connectionSerial.fetch_add(1, std::memory_order_relaxed)))
 {
 }
@@ -141,14 +141,22 @@ bool Database::applySchema(QString *error)
         "  data    BLOB NOT NULL)",
 
         "CREATE TABLE IF NOT EXISTS features ("
-        "  file_id  INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE,"
+        "  id       INTEGER PRIMARY KEY,"
+        "  file_id  INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,"
+        "  tile     INTEGER NOT NULL DEFAULT 0,"
         "  model    TEXT    NOT NULL,"
         "  count    INTEGER NOT NULL,"
         "  dim      INTEGER NOT NULL,"
         "  img_w    INTEGER NOT NULL,"
         "  img_h    INTEGER NOT NULL,"
+        "  off_x    INTEGER NOT NULL DEFAULT 0,"
+        "  off_y    INTEGER NOT NULL DEFAULT 0,"
         "  desc_off INTEGER NOT NULL,"
         "  kpts_off INTEGER NOT NULL)",
+
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_features_tile"
+        " ON features(file_id,tile,model)",
+        "CREATE INDEX IF NOT EXISTS idx_features_file ON features(file_id)",
 
         "CREATE INDEX IF NOT EXISTS idx_features_model ON features(model)",
 
@@ -166,7 +174,7 @@ bool Database::applySchema(QString *error)
         "CREATE INDEX IF NOT EXISTS idx_files_b3      ON files(b3)",
     };
 
-    if (!migrateToRefs(error))
+    if (!migrateToRefs(error) || !migrateToTiles(error))
         return false;
 
     QSqlQuery query(m_db);
@@ -175,7 +183,7 @@ bool Database::applySchema(QString *error)
             return fail(error, query, "schema");
     }
 
-    setMetaValue(QStringLiteral("schema_version"), QStringLiteral("2"));
+    setMetaValue(QStringLiteral("schema_version"), QStringLiteral("3"));
     return true;
 }
 
@@ -283,6 +291,80 @@ bool Database::migrateToRefs(QString *error)
     }
 
     return repairDanglingReferences(error);
+}
+
+bool Database::migrateToTiles(QString *error)
+{
+    QSqlQuery query(m_db);
+
+    if (!query.exec(QStringLiteral("SELECT name FROM sqlite_master"
+                                   " WHERE type='table' AND name='features'")))
+        return fail(error, query, "inspect schema");
+    const bool exists = query.next();
+    query.finish();
+    if (!exists)
+        return true;
+
+    if (!query.exec(QStringLiteral("PRAGMA table_info(features)")))
+        return fail(error, query, "inspect features");
+    bool hasTile = false;
+    while (query.next()) {
+        if (query.value(1).toString() == QLatin1String("tile"))
+            hasTile = true;
+    }
+    query.finish();
+    if (hasTile)
+        return true;
+
+    // Create, copy, drop, rename - in that order and with foreign keys off.
+    // Renaming the old table out of the way first would rewrite the references
+    // to it in other tables and then delete their rows through ON DELETE
+    // CASCADE, which is exactly how the previous migration lost every preview
+    // and descriptor in an index.
+    static const char *migration[] = {
+        "CREATE TABLE features_new ("
+        "  id       INTEGER PRIMARY KEY,"
+        "  file_id  INTEGER NOT NULL REFERENCES files(id) ON DELETE CASCADE,"
+        "  tile     INTEGER NOT NULL DEFAULT 0,"
+        "  model    TEXT    NOT NULL,"
+        "  count    INTEGER NOT NULL,"
+        "  dim      INTEGER NOT NULL,"
+        "  img_w    INTEGER NOT NULL,"
+        "  img_h    INTEGER NOT NULL,"
+        "  off_x    INTEGER NOT NULL DEFAULT 0,"
+        "  off_y    INTEGER NOT NULL DEFAULT 0,"
+        "  desc_off INTEGER NOT NULL,"
+        "  kpts_off INTEGER NOT NULL)",
+        "INSERT INTO features_new"
+        " (file_id,tile,model,count,dim,img_w,img_h,off_x,off_y,desc_off,kpts_off)"
+        " SELECT file_id,0,model,count,dim,img_w,img_h,0,0,desc_off,kpts_off"
+        " FROM features",
+        "DROP TABLE features",
+        "ALTER TABLE features_new RENAME TO features",
+    };
+
+    query.exec(QStringLiteral("PRAGMA foreign_keys=OFF"));
+    if (!m_db.transaction()) {
+        if (error)
+            *error = m_db.lastError().text();
+        return false;
+    }
+    for (const char *sql : migration) {
+        if (!query.exec(QLatin1String(sql))) {
+            const bool failed = fail(error, query, "migrate to tiles");
+            m_db.rollback();
+            query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+            return failed;
+        }
+    }
+    if (!m_db.commit()) {
+        if (error)
+            *error = m_db.lastError().text();
+        query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+        return false;
+    }
+    query.exec(QStringLiteral("PRAGMA foreign_keys=ON"));
+    return true;
 }
 
 bool Database::repairDanglingReferences(QString *error)
@@ -619,21 +701,26 @@ bool Database::upsertFeatures(const FeatureRecord &record, QString *error)
 {
     QSqlQuery query(m_db);
     if (!query.prepare(QStringLiteral(
-            "INSERT INTO features (file_id,model,count,dim,img_w,img_h,desc_off,kpts_off)"
-            " VALUES (:id,:model,:count,:dim,:w,:h,:doff,:koff)"
-            " ON CONFLICT(file_id) DO UPDATE SET"
-            "  model=excluded.model, count=excluded.count, dim=excluded.dim,"
+            "INSERT INTO features"
+            " (file_id,tile,model,count,dim,img_w,img_h,off_x,off_y,desc_off,kpts_off)"
+            " VALUES (:id,:tile,:model,:count,:dim,:w,:h,:ox,:oy,:doff,:koff)"
+            " ON CONFLICT(file_id,tile,model) DO UPDATE SET"
+            "  count=excluded.count, dim=excluded.dim,"
             "  img_w=excluded.img_w, img_h=excluded.img_h,"
+            "  off_x=excluded.off_x, off_y=excluded.off_y,"
             "  desc_off=excluded.desc_off, kpts_off=excluded.kpts_off"))) {
         return fail(error, query, "prepare upsert features");
     }
 
     query.bindValue(QStringLiteral(":id"), record.fileId);
+    query.bindValue(QStringLiteral(":tile"), record.tile);
     query.bindValue(QStringLiteral(":model"), record.model);
     query.bindValue(QStringLiteral(":count"), record.count);
     query.bindValue(QStringLiteral(":dim"), record.dim);
     query.bindValue(QStringLiteral(":w"), record.imageWidth);
     query.bindValue(QStringLiteral(":h"), record.imageHeight);
+    query.bindValue(QStringLiteral(":ox"), record.offsetX);
+    query.bindValue(QStringLiteral(":oy"), record.offsetY);
     query.bindValue(QStringLiteral(":doff"), record.descOffset);
     query.bindValue(QStringLiteral(":koff"), record.kptsOffset);
 
@@ -649,22 +736,63 @@ bool Database::featuresFor(qint64 fileId, const QString &model, FeatureRecord *o
 
     QSqlQuery query(m_db);
     query.prepare(QStringLiteral(
-        "SELECT model,count,dim,img_w,img_h,desc_off,kpts_off"
-        " FROM features WHERE file_id=:id AND model=:model"));
+        "SELECT %1 FROM features WHERE file_id=:id AND model=:model"
+        " ORDER BY tile LIMIT 1").arg(QLatin1String("id,file_id,tile,model,count,dim,img_w,img_h,off_x,off_y,desc_off,kpts_off")));
     query.bindValue(QStringLiteral(":id"), fileId);
     query.bindValue(QStringLiteral(":model"), model);
     if (!query.exec() || !query.next())
         return false;
 
-    out->fileId      = fileId;
-    out->model       = query.value(0).toString();
-    out->count       = query.value(1).toInt();
-    out->dim         = query.value(2).toInt();
-    out->imageWidth  = query.value(3).toInt();
-    out->imageHeight = query.value(4).toInt();
-    out->descOffset  = query.value(5).toLongLong();
-    out->kptsOffset  = query.value(6).toLongLong();
+    FeatureRecord &r = *out;
+        r.id          = query.value(0).toLongLong();
+        r.fileId      = query.value(1).toLongLong();
+        r.tile        = query.value(2).toInt();
+        r.model       = query.value(3).toString();
+        r.count       = query.value(4).toInt();
+        r.dim         = query.value(5).toInt();
+        r.imageWidth  = query.value(6).toInt();
+        r.imageHeight = query.value(7).toInt();
+        r.offsetX     = query.value(8).toInt();
+        r.offsetY     = query.value(9).toInt();
+        r.descOffset  = query.value(10).toLongLong();
+        r.kptsOffset  = query.value(11).toLongLong();
     return true;
+}
+
+bool Database::featureById(qint64 recordId, FeatureRecord *out)
+{
+    if (!out)
+        return false;
+
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("SELECT %1 FROM features WHERE id=:id")
+                      .arg(QLatin1String("id,file_id,tile,model,count,dim,img_w,img_h,off_x,off_y,desc_off,kpts_off")));
+    query.bindValue(QStringLiteral(":id"), recordId);
+    if (!query.exec() || !query.next())
+        return false;
+
+    FeatureRecord &r = *out;
+        r.id          = query.value(0).toLongLong();
+        r.fileId      = query.value(1).toLongLong();
+        r.tile        = query.value(2).toInt();
+        r.model       = query.value(3).toString();
+        r.count       = query.value(4).toInt();
+        r.dim         = query.value(5).toInt();
+        r.imageWidth  = query.value(6).toInt();
+        r.imageHeight = query.value(7).toInt();
+        r.offsetX     = query.value(8).toInt();
+        r.offsetY     = query.value(9).toInt();
+        r.descOffset  = query.value(10).toLongLong();
+        r.kptsOffset  = query.value(11).toLongLong();
+    return true;
+}
+
+bool Database::clearFeaturesFor(qint64 fileId)
+{
+    QSqlQuery query(m_db);
+    query.prepare(QStringLiteral("DELETE FROM features WHERE file_id=:id"));
+    query.bindValue(QStringLiteral(":id"), fileId);
+    return query.exec();
 }
 
 QList<PendingFeature> Database::filesWithoutFeatures(const QString &model)
@@ -675,8 +803,8 @@ QList<PendingFeature> Database::filesWithoutFeatures(const QString &model)
     query.setForwardOnly(true);
     query.prepare(QStringLiteral(
         "SELECT f.id, f.rel, f.ref, f.blob FROM files f"
-        " LEFT JOIN features x ON x.file_id = f.id AND x.model = :model"
-        " WHERE f.status = 0 AND x.file_id IS NULL"
+        " WHERE f.status = 0 AND NOT EXISTS ("
+        "   SELECT 1 FROM features x WHERE x.file_id = f.id AND x.model = :model)"
         " ORDER BY f.ref, f.id"));
     query.bindValue(QStringLiteral(":model"), model);
     if (!query.exec())
@@ -783,22 +911,26 @@ QList<FeatureRecord> Database::allFeatures(const QString &model)
     QSqlQuery query(m_db);
     query.setForwardOnly(true);
     query.prepare(QStringLiteral(
-        "SELECT file_id,count,dim,img_w,img_h,desc_off,kpts_off"
-        " FROM features WHERE model=:model AND count > 0 ORDER BY file_id"));
+        "SELECT %1 FROM features WHERE model=:model AND count > 0"
+        " ORDER BY file_id, tile").arg(QLatin1String("id,file_id,tile,model,count,dim,img_w,img_h,off_x,off_y,desc_off,kpts_off")));
     query.bindValue(QStringLiteral(":model"), model);
     if (!query.exec())
         return out;
 
     while (query.next()) {
         FeatureRecord r;
-        r.model       = model;
-        r.fileId      = query.value(0).toLongLong();
-        r.count       = query.value(1).toInt();
-        r.dim         = query.value(2).toInt();
-        r.imageWidth  = query.value(3).toInt();
-        r.imageHeight = query.value(4).toInt();
-        r.descOffset  = query.value(5).toLongLong();
-        r.kptsOffset  = query.value(6).toLongLong();
+        r.id          = query.value(0).toLongLong();
+        r.fileId      = query.value(1).toLongLong();
+        r.tile        = query.value(2).toInt();
+        r.model       = query.value(3).toString();
+        r.count       = query.value(4).toInt();
+        r.dim         = query.value(5).toInt();
+        r.imageWidth  = query.value(6).toInt();
+        r.imageHeight = query.value(7).toInt();
+        r.offsetX     = query.value(8).toInt();
+        r.offsetY     = query.value(9).toInt();
+        r.descOffset  = query.value(10).toLongLong();
+        r.kptsOffset  = query.value(11).toLongLong();
         out.append(r);
     }
     return out;
@@ -820,10 +952,12 @@ QList<FileInfoRow> Database::filesWithFewFeatures(const QString &model, int maxC
     query.setForwardOnly(true);
     query.prepare(QStringLiteral(
         "SELECT f.id, f.rel, f.size, f.mtime, f.width, f.height, f.phash,"
-        "       f.ref, f.blob, COALESCE(x.count, 0) AS kp"
+        "       f.ref, f.blob, COALESCE(SUM(x.count), 0) AS kp"
         " FROM files f"
         " LEFT JOIN features x ON x.file_id = f.id AND x.model = :model"
-        " WHERE f.status = 0 AND COALESCE(x.count, 0) <= :maxCount"
+        " WHERE f.status = 0"
+        " GROUP BY f.id"
+        " HAVING kp <= :maxCount"
         " ORDER BY kp ASC, f.rel ASC"));
     query.bindValue(QStringLiteral(":model"), model);
     query.bindValue(QStringLiteral(":maxCount"), maxCount);
@@ -884,4 +1018,4 @@ bool Database::setMetaValue(const QString &key, const QString &value)
     return query.exec();
 }
 
-} // namespace iw
+} // namespace argus

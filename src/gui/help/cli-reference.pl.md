@@ -4,8 +4,8 @@ Pakiet zawiera **dwa programy zbudowane na tej samej bibliotece rdzeniowej**:
 
 | | |
 |---|---|
-| `imageworker-gui` | okno, w którym to czytasz |
-| `imageworker` | bez interfejsu; wszystko to samo co GUI, plus opcje indeksowania, których GUI nie udostępnia |
+| `argus-gui` | okno, w którym to czytasz |
+| `argus` | bez interfejsu; wszystko to samo co GUI, plus opcje indeksowania, których GUI nie udostępnia |
 
 Dzielą całą logikę, więc katalog zindeksowany przez jeden odczyta drugi. Żaden
 nie jest nakładką na drugi — oba linkują ten sam statyczny rdzeń.
@@ -31,25 +31,25 @@ Można na nim polegać w skryptach; jest celowo stabilny.
 ## Polecenia
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
 Każde polecenie przyjmuje `--db <path>`, aby umieścić indeks gdzie indziej niż w
-`<dir>/.imageworker`.
+`<dir>/.argus`.
 
 ### Przygotowanie katalogu do wyszukiwania obiektów
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 Samo `index` daje wykrywanie duplikatów. `--features` dodaje deskryptory
@@ -60,7 +60,7 @@ dużej partii zasobów, a nie po każdym pliku.
 ### Wyszukiwanie
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 Podaj `--roi x,y,w,h`, gdy wiesz, gdzie jest obiekt. To najskuteczniejsza opcja
@@ -70,8 +70,8 @@ i znajduje mniej więcej dwa razy więcej pasujących punktów.
 ### Inne gałęzie git
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 Obrazy są czytane z magazynu obiektów, więc nic nie jest wyewidencjonowywane, a
@@ -95,8 +95,8 @@ pobierane z własnej inicjatywy.
 ### Potoki
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -104,7 +104,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## Sprawdzenie instalacji
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 Podaje wersje ONNX Runtime i OpenCV, dostępnych dostawców wykonania oraz to, czy
@@ -137,12 +137,12 @@ Modeli szuka się w `models/` obok programu, a potem w katalogach nadrzędnych �
 ## Kompilacja
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` kompiluje bez ONNX Runtime i OpenCV; wyszukiwanie
+`ARGUS_WITH_INFERENCE=OFF` kompiluje bez ONNX Runtime i OpenCV; wyszukiwanie
 duplikatów nadal działa, wyszukiwanie obiektów nie.
 
 Krok instalacji składa samowystarczalny katalog — każda zależność obok programów,

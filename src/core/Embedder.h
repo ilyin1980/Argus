@@ -20,7 +20,7 @@
 
 #include <memory>
 
-namespace iw {
+namespace argus {
 
 /** @brief Produces fixed-length float vectors from images, and later from text. */
 class IEmbedder
@@ -55,11 +55,11 @@ public:
  * @param error     Optional out-parameter receiving a failure description.
  * @return An embedder, or @c nullptr when this build has no inference support.
  * @note Returns @c nullptr unless the project was configured with
- *       @c IMAGEWORKER_WITH_INFERENCE.
+ *       @c ARGUS_WITH_INFERENCE.
  */
 std::unique_ptr<IEmbedder> createEmbedder(const QString &modelPath, QString *error = nullptr);
 
 /** @return @c true when this build can run neural models at all. */
 bool inferenceAvailable();
 
-} // namespace iw
+} // namespace argus

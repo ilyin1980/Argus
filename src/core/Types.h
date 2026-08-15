@@ -1,6 +1,6 @@
 /**
  * @file Types.h
- * @brief Plain data structures shared by every ImageWorker module.
+ * @brief Plain data structures shared by every Argus module.
  *
  * Nothing here owns resources or touches Qt's object system, so these types can
  * cross thread boundaries freely and be copied without surprises.
@@ -14,7 +14,7 @@
 #include <bit>
 #include <cstdint>
 
-namespace iw {
+namespace argus {
 
 /** @brief Outcome of trying to read and decode one file. */
 enum class FileStatus : int {
@@ -125,7 +125,16 @@ struct IndexOptions {
     bool    extractFeatures    = false; ///< Run the extractor after hashing.
     QString featureModelPath;           ///< Path to the extractor .onnx file.
     int     featureMaxKeypoints = 512;  ///< Keypoints kept per image.
-    int     featureMaxSide      = 1024; ///< Long side the extractor sees.
+    int     featureMaxSide      = 1024; ///< Long side the extractor sees, and the tile size.
+
+    /**
+     * @brief How much of a tile is shared with its neighbour, 0..0.5.
+     *
+     * An object lying across a seam is cut in half in both tiles that hold it.
+     * A quarter of a tile is enough overlap that anything smaller than that is
+     * whole somewhere, and costs about a third more tiles.
+     */
+    double  tileOverlap         = 0.25;
     bool    featureUseGpu       = true; ///< Prefer the DirectML provider.
     /// @}
 };
@@ -145,6 +154,7 @@ struct IndexStats {
 
     int    featured      = 0; ///< Images that got local features this run.
     int    featureFailed = 0; ///< Images the extractor could not handle.
+    int    tiles         = 0; ///< Tiles written for pictures too large to describe whole.
     qint64 keypointsTotal = 0; ///< Keypoints stored this run.
     qint64 featureBytes  = 0; ///< Size of the descriptor store afterwards.
     QString featureProvider;  ///< Execution provider the extractor used.
@@ -194,4 +204,4 @@ inline int hamming(quint64 a, quint64 b) noexcept
     return std::popcount(a ^ b);
 }
 
-} // namespace iw
+} // namespace argus

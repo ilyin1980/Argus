@@ -1,4 +1,4 @@
-qt_add_library(imageworker_core STATIC
+qt_add_library(argus_core STATIC
     Types.h
     Parallel.h
     Paths.h              Paths.cpp
@@ -24,23 +24,23 @@ qt_add_library(imageworker_core STATIC
     Json.h               Json.cpp
 )
 
-target_include_directories(imageworker_core
+target_include_directories(argus_core
     PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
-target_link_libraries(imageworker_core
+target_link_libraries(argus_core
     PUBLIC Qt6::Core Qt6::Gui Qt6::Sql)
 
-target_compile_definitions(imageworker_core
-    PUBLIC IMAGEWORKER_VERSION="${PROJECT_VERSION}")
+target_compile_definitions(argus_core
+    PUBLIC ARGUS_VERSION="${PROJECT_VERSION}")
 
-if(IMAGEWORKER_WITH_INFERENCE)
-    target_compile_definitions(imageworker_core PUBLIC IMAGEWORKER_WITH_INFERENCE=1)
-    target_link_libraries(imageworker_core PUBLIC onnxruntime ${OpenCV_LIBS})
-    target_include_directories(imageworker_core PUBLIC ${OpenCV_INCLUDE_DIRS})
+if(ARGUS_WITH_INFERENCE)
+    target_compile_definitions(argus_core PUBLIC ARGUS_WITH_INFERENCE=1)
+    target_link_libraries(argus_core PUBLIC onnxruntime ${OpenCV_LIBS})
+    target_include_directories(argus_core PUBLIC ${OpenCV_INCLUDE_DIRS})
 endif()
 
 if(MSVC)
-    target_compile_options(imageworker_core PRIVATE /W4 /permissive- /utf-8)
+    target_compile_options(argus_core PRIVATE /W4 /permissive- /utf-8)
 else()
-    target_compile_options(imageworker_core PRIVATE -Wall -Wextra)
+    target_compile_options(argus_core PRIVATE -Wall -Wextra)
 endif()

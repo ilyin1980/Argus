@@ -3,7 +3,7 @@
  * @brief Execution-provider selection, in one place for every session we build.
  *
  * Private to the inference sources: including it requires the ONNX Runtime
- * headers, so it is only ever pulled in under @c IMAGEWORKER_WITH_INFERENCE.
+ * headers, so it is only ever pulled in under @c ARGUS_WITH_INFERENCE.
  *
  * Three call sites used to carry their own copy of this logic, which is how the
  * DirectML-specific session options ended up correct in some of them and merely
@@ -11,13 +11,13 @@
  */
 #pragma once
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 #include <QString>
 
 #include <onnxruntime_cxx_api.h>
 
-namespace iw::onnx {
+namespace argus::onnx {
 
 /**
  * @brief Attach the best execution provider this platform and build can offer.
@@ -43,6 +43,6 @@ namespace iw::onnx {
  */
 QString configureProvider(Ort::SessionOptions &options, bool preferGpu, QString *note = nullptr);
 
-} // namespace iw::onnx
+} // namespace argus::onnx
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE

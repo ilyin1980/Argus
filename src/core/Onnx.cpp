@@ -4,15 +4,15 @@
 #include <QElapsedTimer>
 #include <QFileInfo>
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 #include "core/OnnxProvider.h"
 
 #include <opencv2/core.hpp>
 #endif
 
-namespace iw {
+namespace argus {
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 namespace {
 
@@ -70,7 +70,7 @@ RuntimeInfo probeRuntime()
         // The env must exist before a provider is appended: without one, ORT
         // reports "Attempt to use DefaultLogger but none has been registered"
         // and the probe wrongly concludes there is no accelerator.
-        Ort::Env env(ORT_LOGGING_LEVEL_ERROR, "imageworker-probe");
+        Ort::Env env(ORT_LOGGING_LEVEL_ERROR, "argus-probe");
 
         Ort::SessionOptions options;
         QString note;
@@ -127,7 +127,7 @@ ModelInfo inspectModel(const QString &modelPath, bool preferDirectML)
     timer.start();
 
     try {
-        Ort::Env env(ORT_LOGGING_LEVEL_ERROR, "imageworker-inspect");
+        Ort::Env env(ORT_LOGGING_LEVEL_ERROR, "argus-inspect");
         Ort::SessionOptions options;
         out.provider = onnx::configureProvider(options, preferDirectML);
 
@@ -154,14 +154,14 @@ ModelInfo inspectModel(const QString &modelPath, bool preferDirectML)
     return out;
 }
 
-#else // IMAGEWORKER_WITH_INFERENCE
+#else // ARGUS_WITH_INFERENCE
 
 RuntimeInfo probeRuntime()
 {
     RuntimeInfo info;
     info.gpuProvider = QStringLiteral("none");
     info.gpuError    = QStringLiteral(
-        "built without inference support; reconfigure with -DIMAGEWORKER_WITH_INFERENCE=ON");
+        "built without inference support; reconfigure with -DARGUS_WITH_INFERENCE=ON");
     return info;
 }
 
@@ -171,7 +171,7 @@ ModelInfo inspectModel(const QString &modelPath, bool preferDirectML)
     Q_UNUSED(preferDirectML)
     ModelInfo out;
     out.error = QStringLiteral(
-        "built without inference support; reconfigure with -DIMAGEWORKER_WITH_INFERENCE=ON");
+        "built without inference support; reconfigure with -DARGUS_WITH_INFERENCE=ON");
     return out;
 }
 
@@ -180,6 +180,6 @@ QString preferredMatcherModel(const QString &modelsDir)
     return modelsDir + QStringLiteral("/disk_lightglue_fused_fp16.onnx");
 }
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE
 
-} // namespace iw
+} // namespace argus

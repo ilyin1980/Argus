@@ -15,7 +15,7 @@
 
 #include "core/FeatureExtractor.h"
 
-namespace iw {
+namespace argus {
 
 /** @brief Where one image's features sit inside the flat files. */
 struct FeatureLocation {
@@ -90,4 +90,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

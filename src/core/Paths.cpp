@@ -7,9 +7,9 @@
 #include <QProcess>
 #include <QUrl>
 
-namespace iw {
+namespace argus {
 
-static const char *kStateDirName = ".imageworker";
+static const char *kStateDirName = ".argus";
 
 QString normalizeRoot(const QString &root)
 {
@@ -21,7 +21,19 @@ QString normalizeRoot(const QString &root)
 
 QString stateDirFor(const QString &root)
 {
-    return normalizeRoot(root) + QLatin1Char('/') + QLatin1String(kStateDirName);
+    const QString base = normalizeRoot(root);
+    const QString current = base + QLatin1Char('/') + QLatin1String(kStateDirName);
+
+    // The tool used to be called ImageWorker and kept its index in a folder of
+    // that name. Adopting an existing one costs five lines here and saves every
+    // early user a full re-index they would not understand the reason for. New
+    // folders always get the current name.
+    if (!QFileInfo::exists(current)) {
+        const QString legacy = base + QLatin1String("/.imageworker");
+        if (QFileInfo(legacy).isDir())
+            return legacy;
+    }
+    return current;
 }
 
 QString defaultDatabasePath(const QString &root, QString *error)
@@ -76,4 +88,4 @@ bool revealInFileManager(const QString &absPath)
 #endif
 }
 
-} // namespace iw
+} // namespace argus

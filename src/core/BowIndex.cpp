@@ -11,12 +11,12 @@
 #include <cmath>
 #include <vector>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
 constexpr quint32 kMagic   = 0x49574257u; // "IWBW"
-constexpr quint32 kVersion = 1u;
+constexpr quint32 kVersion = 2u; // 2: documents are feature records, not files
 
 /** @brief One word's contribution to one document. */
 struct Posting {
@@ -145,7 +145,11 @@ std::unique_ptr<BowIndex> BowIndex::build(Database &db,
                 ++documentFrequency[it.key()];
         }
 
-        self->d->documentIds.push_back(record.fileId);
+        // The document is the tile, not the file: a large picture contributes
+        // one document per tile, and each is the size of a query rather than of
+        // the whole atlas. Recording the file id here instead would collapse
+        // them back into one and lose which tile matched.
+        self->d->documentIds.push_back(record.id);
         documents.push_back(std::move(histogram));
 
         if (progress && (++done % 128 == 0))
@@ -309,4 +313,4 @@ std::unique_ptr<BowIndex> BowIndex::load(const QString &path, QString *error)
     return self;
 }
 
-} // namespace iw
+} // namespace argus

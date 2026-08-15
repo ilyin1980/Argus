@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  Download what ImageWorker needs to build on Linux or macOS.
+#  Download what Argus needs to build on Linux or macOS.
 #
 #  Qt and OpenCV come from the system package manager — they are large, and a
 #  distribution build is the one the rest of the system already agrees with.
@@ -14,7 +14,7 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEPS="$HOME/imageworker-deps"
+DEPS="$HOME/argus-deps"
 MODELS="$ROOT/models"
 
 ORT_VERSION=1.24.1

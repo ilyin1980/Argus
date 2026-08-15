@@ -4,7 +4,7 @@
 #include <QFile>
 #include <QFloat16>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -201,4 +201,4 @@ FeatureSet DescriptorStore::load(const FeatureLocation &location,
     return out;
 }
 
-} // namespace iw
+} // namespace argus

@@ -5,8 +5,8 @@ içerir:
 
 | | |
 |---|---|
-| `imageworker-gui` | bunu okuduğunuz pencere |
-| `imageworker` | penceresiz; GUI'nin yaptığı her şey, artı GUI'nin sunmadığı dizinleme seçenekleri |
+| `argus-gui` | bunu okuduğunuz pencere |
+| `argus` | penceresiz; GUI'nin yaptığı her şey, artı GUI'nin sunmadığı dizinleme seçenekleri |
 
 Tüm mantığı paylaşırlar; biriyle dizinlenen klasörü öteki okur. Hiçbiri
 diğerinin sarmalayıcısı değildir — ikisi de aynı statik çekirdeğe bağlanır.
@@ -32,25 +32,25 @@ Betik yazarken buna güvenebilirsiniz; bilerek kararlıdır.
 ## Komutlar
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
-Her komut, dizini `<dir>/.imageworker` dışında bir yere koymak için `--db <path>`
+Her komut, dizini `<dir>/.argus` dışında bir yere koymak için `--db <path>`
 alır.
 
 ### Bir klasörü nesne aramaya hazırlamak
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 Tek başına `index` kopya bulmayı sağlar. `--features` sinirsel betimleyicileri
@@ -61,7 +61,7 @@ varlık partisi ekledikten sonra yeniden çalıştırın.
 ### Arama
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 Nesnenin nerede olduğunu biliyorsanız `--roi x,y,w,h` verin. En etkili seçenek
@@ -71,8 +71,8 @@ katı eşleşen nokta bulur.
 ### Diğer git dalları
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 Görseller nesne deposundan okunur; hiçbir şey checkout edilmez ve çalışma ağacına
@@ -97,8 +97,8 @@ indirilmez.
 ### Boru hattı
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -106,7 +106,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## Kurulumu denetlemek
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 ONNX Runtime ile OpenCV sürümlerini, kullanılabilir yürütme sağlayıcılarını ve bu
@@ -141,12 +141,12 @@ ayar gerektirmeden çalışır.
 ## Derleme
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF`, ONNX Runtime ve OpenCV olmadan derler; kopya
+`ARGUS_WITH_INFERENCE=OFF`, ONNX Runtime ve OpenCV olmadan derler; kopya
 bulma çalışmaya devam eder, nesne arama etmez.
 
 Kurulum adımı kendi kendine yeten bir klasör oluşturur: tüm bağımlılıklar

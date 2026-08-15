@@ -11,7 +11,7 @@
 #include "core/Types.h"
 
 /**
- * @brief Owns a worker thread and the iw::Indexer living on it.
+ * @brief Owns a worker thread and the argus::Indexer living on it.
  *
  * The GUI never calls into the core synchronously: it calls @ref start, then
  * reacts to @ref progress and @ref finished, which arrive as queued signals on
@@ -33,16 +33,16 @@ public slots:
      * @brief Begin an indexing run.
      * @param options Fully populated options; ignored if a run is in flight.
      */
-    void start(const iw::IndexOptions &options);
+    void start(const argus::IndexOptions &options);
 
     /** @brief Ask the running indexer to stop at the next safe point. */
     void cancel();
 
 signals:
-    /** @brief Forwarded from iw::Indexer::progress. */
+    /** @brief Forwarded from argus::Indexer::progress. */
     void progress(int done, int total, const QString &stage);
 
-    /** @brief Forwarded from iw::Indexer::message. */
+    /** @brief Forwarded from argus::Indexer::message. */
     void message(const QString &text);
 
     /**
@@ -50,10 +50,10 @@ signals:
      * @param stats Counters for the run.
      * @param error Empty on success.
      */
-    void finished(const iw::IndexStats &stats, const QString &error);
+    void finished(const argus::IndexStats &stats, const QString &error);
 
 private:
     QThread       m_thread;
-    iw::Indexer  *m_indexer = nullptr;
+    argus::Indexer  *m_indexer = nullptr;
     bool          m_running = false;
 };

@@ -9,7 +9,7 @@
 #include <thread>
 #include <vector>
 
-namespace iw {
+namespace argus {
 
 /**
  * @brief Resolve a requested worker count against the machine's capabilities.
@@ -127,4 +127,4 @@ void parallelForWorker(int count, int threads, const std::atomic_bool *cancel, F
         th.join();
 }
 
-} // namespace iw
+} // namespace argus

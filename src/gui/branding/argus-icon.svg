@@ -1,0 +1,51 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a2744"/>
+      <stop offset="1" stop-color="#0c1424"/>
+    </linearGradient>
+    <radialGradient id="iris" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#38e8c8"/>
+      <stop offset="0.55" stop-color="#12a8b8"/>
+      <stop offset="1" stop-color="#0a5f7a"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#5cffe0" stop-opacity="0.9"/>
+      <stop offset="1" stop-color="#5cffe0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- rounded background -->
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- outer scan ring -->
+  <circle cx="256" cy="256" r="176" fill="none" stroke="#2f4a72" stroke-width="6" opacity="0.6"/>
+  <!-- dashed similarity ring -->
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#3ad0c0" stroke-width="4" stroke-dasharray="10 16" opacity="0.75"/>
+
+  <!-- eye almond shape -->
+  <path d="M96 256 Q256 128 416 256 Q256 384 96 256 Z" fill="#0c1424" stroke="#4fe8d0" stroke-width="10" stroke-linejoin="round"/>
+
+  <!-- iris glow -->
+  <circle cx="256" cy="256" r="96" fill="url(#glow)" opacity="0.5"/>
+  <!-- iris -->
+  <circle cx="256" cy="256" r="78" fill="url(#iris)"/>
+  <!-- iris ridges -->
+  <g stroke="#0a4a5a" stroke-width="3" opacity="0.5">
+    <circle cx="256" cy="256" r="62" fill="none"/>
+    <circle cx="256" cy="256" r="46" fill="none"/>
+  </g>
+
+  <!-- pupil -->
+  <circle cx="256" cy="256" r="34" fill="#08111f"/>
+  <!-- highlight -->
+  <circle cx="238" cy="238" r="12" fill="#eafff9" opacity="0.9"/>
+
+  <!-- corner scan brackets (vision framing) -->
+  <g stroke="#3ad0c0" stroke-width="7" stroke-linecap="round" fill="none" opacity="0.85">
+    <path d="M150 150 h34 M150 150 v34"/>
+    <path d="M362 150 h-34 M362 150 v34"/>
+    <path d="M150 362 h34 M150 362 v-34"/>
+    <path d="M362 362 h-34 M362 362 v-34"/>
+  </g>
+</svg>

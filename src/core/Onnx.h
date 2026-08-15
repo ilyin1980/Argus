@@ -3,7 +3,7 @@
  * @brief Capability probing for the neural backend.
  *
  * Everything here degrades gracefully: in a build configured without
- * @c IMAGEWORKER_WITH_INFERENCE the functions still exist and report that the
+ * @c ARGUS_WITH_INFERENCE the functions still exist and report that the
  * backend is absent, so callers never need to be compiled two ways.
  */
 #pragma once
@@ -12,7 +12,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace iw {
+namespace argus {
 
 /** @brief What the neural backend can do on this machine, right now. */
 struct RuntimeInfo {
@@ -79,4 +79,4 @@ ModelInfo inspectModel(const QString &modelPath, bool preferDirectML = true);
  */
 QString preferredMatcherModel(const QString &modelsDir);
 
-} // namespace iw
+} // namespace argus

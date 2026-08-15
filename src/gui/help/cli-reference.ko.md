@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| `imageworker-gui` | 지금 이 글을 읽고 있는 창 |
-| `imageworker` | 창 없이 동작. GUI가 하는 모든 일에 더해, GUI가 내놓지 않는 색인 옵션까지 |
+| `argus-gui` | 지금 이 글을 읽고 있는 창 |
+| `argus` | 창 없이 동작. GUI가 하는 모든 일에 더해, GUI가 내놓지 않는 색인 옵션까지 |
 
 둘은 로직을 전부 공유하므로 한쪽이 만든 색인을 다른 쪽이 읽습니다. 어느 쪽도 다른
 쪽을 감싼 껍데기가 아니라, 둘 다 같은 정적 코어를 링크합니다.
@@ -30,25 +30,25 @@
 ## 명령
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
-모든 명령은 `--db <path>`를 받아 색인을 `<dir>/.imageworker`가 아닌 다른 곳에 둘 수
+모든 명령은 `--db <path>`를 받아 색인을 `<dir>/.argus`가 아닌 다른 곳에 둘 수
 있습니다.
 
 ### 객체 검색을 위해 폴더 준비하기
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 `index`만 해도 중복 검색은 됩니다. `--features`가 신경망 서술자를 더하고, `vocab`이
@@ -58,7 +58,7 @@ imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
 ### 검색
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 객체가 어디 있는지 안다면 `--roi x,y,w,h`를 넘기세요. 무엇보다 효과가 큰 옵션입니다.
@@ -67,8 +67,8 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 ### 다른 git 브랜치
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 이미지는 객체 저장소에서 읽으므로 체크아웃이 일어나지 않고 작업 트리도 그대로
@@ -91,8 +91,8 @@ Git LFS에서는 객체를 로컬 LFS 저장소에서 가져옵니다. 없는 �
 ### 파이프
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -100,7 +100,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## 설치 상태 확인
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 ONNX Runtime과 OpenCV의 버전, 사용 가능한 실행 공급자, 그리고 이 드라이버에서 실제로
@@ -133,12 +133,12 @@ DirectML 세션을 만들 수 있는지를 알려 줍니다. 공급자가 목록
 ## 빌드
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF`는 ONNX Runtime과 OpenCV 없이 빌드합니다. 중복 찾기는
+`ARGUS_WITH_INFERENCE=OFF`는 ONNX Runtime과 OpenCV 없이 빌드합니다. 중복 찾기는
 계속 되지만 객체 검색은 되지 않습니다.
 
 설치 단계는 자족적인 폴더를 꾸립니다. 모든 의존물이 실행 파일 옆에 놓이고 `PATH`에서는

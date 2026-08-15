@@ -1,6 +1,6 @@
 #include "core/OnnxProvider.h"
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 #if defined(_WIN32)
 #include <dml_provider_factory.h>
@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace iw::onnx {
+namespace argus::onnx {
 
 namespace {
 
@@ -98,6 +98,6 @@ QString configureProvider(Ort::SessionOptions &options, bool preferGpu, QString 
 #endif
 }
 
-} // namespace iw::onnx
+} // namespace argus::onnx
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE

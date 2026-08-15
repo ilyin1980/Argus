@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| `imageworker-gui` | вікно, у якому ви це читаєте |
-| `imageworker` | консольний; усе те саме, плюс опції індексації, яких немає в ГУІ |
+| `argus-gui` | вікно, у якому ви це читаєте |
+| `argus` | консольний; усе те саме, плюс опції індексації, яких немає в ГУІ |
 
 Вони поділяють усю логіку, тож папку, проіндексовану одним, читає інший. Жоден
 не є обгорткою над іншим — обидва лінкуються з тим самим статичним ядром.
@@ -32,25 +32,25 @@
 ## Команди
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
 Кожна команда приймає `--db <path>`, щоб покласти індекс не в
-`<dir>/.imageworker`, а деінде.
+`<dir>/.argus`, а деінде.
 
 ### Підготувати папку до пошуку об'єктів
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 Сам по собі `index` дає пошук дублікатів. `--features` додає нейронні
@@ -61,7 +61,7 @@ imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
 ### Пошук
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 Передавайте `--roi x,y,w,h`, коли знаєте, де об'єкт. Це найдієвіша опція: на
@@ -71,8 +71,8 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 ### Інші гілки git
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 Картинки читаються зі сховища об'єктів, тож нічого не викачується, а робоче
@@ -95,8 +95,8 @@ imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
 ### Конвеєр
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -104,7 +104,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## Перевірка встановлення
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 Повідомляє версії ONNX Runtime та OpenCV, доступні провайдери виконання і чи
@@ -139,12 +139,12 @@ imageworker doctor
 ## Збірка
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` збирає без ONNX Runtime та OpenCV; пошук
+`ARGUS_WITH_INFERENCE=OFF` збирає без ONNX Runtime та OpenCV; пошук
 дублікатів працює, пошук об'єктів — ні.
 
 Крок install збирає самодостатню папку: усі залежності поруч із виконуваними

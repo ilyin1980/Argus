@@ -1,6 +1,9 @@
-# ImageWorker nasıl kullanılır
+# Argus nasıl kullanılır
 
-ImageWorker, `png` ve `jpg` dosyaları bulunan bir klasör hakkında iki soruyu
+> *Yüz gözlü dev Argos Panoptes: gözlerinin yarısı uyurken diğer yarısı hep
+> açık kalırdı, bu yüzden hiçbir şey gözünden kaçmazdı.*
+
+Argus, `png` ve `jpg` dosyaları bulunan bir klasör hakkında iki soruyu
 yanıtlar:
 
 - **Bu varlık ekran görüntümde nerede geçiyor?** — asıl iş.
@@ -10,10 +13,10 @@ yanıtlar:
 
 ## 1. Bir klasör gösterin
 
-**Görseller**, taranacak klasördür. **Dizin konumu**, ImageWorker'ın kendi
+**Görseller**, taranacak klasördür. **Dizin konumu**, Argus'ın kendi
 verilerini tuttuğu yerdir: veritabanı, önizlemeler ve betimleyiciler.
 
-Varsayılan olarak dizin, görsel klasörünün içindeki gizli `.imageworker`
+Varsayılan olarak dizin, görsel klasörünün içindeki gizli `.argus`
 klasörüne gider. Görseller salt okunur ya da ağ paylaşımındaysa, başkasının
 deposuna hiçbir şey eklemek istemiyorsanız veya dizinin yeri daha hızlı bir
 diskse **Dizin konumu**'nu değiştirin. **Varsayılan** eski yerine geri koyar.
@@ -68,8 +71,8 @@ yerine sıralamayı okuyun.
 satırından bir kez oluşturun:
 
 ```
-imageworker index "<görsel klasörü>" --db "<dizin klasörü>\index.db" --features
-imageworker vocab "<görsel klasörü>" --db "<dizin klasörü>\index.db"
+argus index "<görsel klasörü>" --db "<dizin klasörü>\index.db" --features
+argus vocab "<görsel klasörü>" --db "<dizin klasörü>\index.db"
 ```
 
 ---
@@ -125,7 +128,7 @@ Yeniden dizinleme ucuzdur: ucu kıpırdamamış bir dal bütünüyle atlanır ve
 içinde yalnızca içeriği gerçekten değişen dosyalar yeniden okunur.
 
 > **Git LFS**: görseller yerel LFS deponuzdan çözülür. Bir dal hiç çekilmemişse
-> ImageWorker kaç nesnenin eksik olduğunu ve bunları `git lfs fetch --all`
+> Argus kaç nesnenin eksik olduğunu ve bunları `git lfs fetch --all`
 > komutunun getireceğini söyler — kendiliğinden hiçbir şey indirmez.
 
 ---

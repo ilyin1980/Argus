@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| `imageworker-gui` | النافذة التي تقرأ فيها هذا النص |
-| `imageworker` | بلا واجهة؛ كل ما تفعله الواجهة الرسومية، وزيادة خيارات فهرسة لا تعرضها |
+| `argus-gui` | النافذة التي تقرأ فيها هذا النص |
+| `argus` | بلا واجهة؛ كل ما تفعله الواجهة الرسومية، وزيادة خيارات فهرسة لا تعرضها |
 
 يتقاسمان المنطق كله، فالمجلد الذي يفهرسه أحدهما يقرأه الآخر. وليس أحدهما غلافًا
 حول الآخر، بل يرتبط كلاهما بالنواة الساكنة نفسها.
@@ -30,24 +30,24 @@
 ## الأوامر
 
 ```
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist N] [--top N]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--extract img.png]
+argus formats
 ```
 
-يقبل كل أمر `--db <path>` لوضع الفهرس في موضع غير `<dir>/.imageworker`.
+يقبل كل أمر `--db <path>` لوضع الفهرس في موضع غير `<dir>/.argus`.
 
 ### تجهيز مجلد للبحث عن الأجسام
 
 ```
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 `index` وحده يمنحك كشف التكرارات. و`--features` يضيف الواصفات العصبية، و`vocab`
@@ -57,7 +57,7 @@ imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
 ### البحث
 
 ```
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 مرّر `--roi x,y,w,h` حين تعرف موضع الجسم. وهو أنفع الخيارات على الإطلاق: على
@@ -66,8 +66,8 @@ imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png -
 ### فروع git الأخرى
 
 ```
-imageworker index D:/game/Assets --branches all
-imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
+argus index D:/game/Assets --branches all
+argus index D:/game/Assets --branches release/1.4,feature/new-ui
 ```
 
 تُقرأ الصور من مخزن الكائنات، فلا يجري سحب أي شيء وتبقى شجرة العمل سليمة.
@@ -89,8 +89,8 @@ imageworker index D:/game/Assets --branches release/1.4,feature/new-ui
 ### التمرير في أنبوب
 
 ```
-imageworker dupes D:/game/Assets --paths > groups.txt
-imageworker find  D:/game/Assets --image shot.png --paths | clip
+argus dupes D:/game/Assets --paths > groups.txt
+argus find  D:/game/Assets --image shot.png --paths | clip
 ```
 
 ---
@@ -98,7 +98,7 @@ imageworker find  D:/game/Assets --image shot.png --paths | clip
 ## فحص التثبيت
 
 ```
-imageworker doctor
+argus doctor
 ```
 
 يذكر إصداري ONNX Runtime وOpenCV، ومزوّدي التنفيذ المتاحين، وما إذا كان إنشاء
@@ -131,12 +131,12 @@ imageworker doctor
 ## البناء
 
 ```
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON
 cmake --build --preset msvc-release
 cmake --install build/msvc-release
 ```
 
-`IMAGEWORKER_WITH_INFERENCE=OFF` يبني من دون ONNX Runtime وOpenCV؛ فيظل كشف
+`ARGUS_WITH_INFERENCE=OFF` يبني من دون ONNX Runtime وOpenCV؛ فيظل كشف
 التكرارات عاملًا، ولا يعمل البحث عن الأجسام.
 
 خطوة التثبيت تجمع مجلدًا مكتفيًا بذاته: كل اعتمادية بجوار البرنامجين، ولا شيء

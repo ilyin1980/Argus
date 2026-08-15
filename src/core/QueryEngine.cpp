@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -137,4 +137,4 @@ QueryResult queryByImage(Database &db,
     return finishQuery(db, decoded, options);
 }
 
-} // namespace iw
+} // namespace argus

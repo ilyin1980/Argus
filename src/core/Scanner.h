@@ -12,7 +12,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 /** @brief Filters applied while walking a tree. */
 struct ScanOptions {
@@ -29,11 +29,11 @@ struct ScanOptions {
  * @param cancel   Optional flag polled during the walk; may be @c nullptr.
  * @param progress Optional callback invoked periodically with the running match count.
  * @return Candidates in iteration order; empty if @p root is not a directory.
- * @note The @c .imageworker state directory is always excluded.
+ * @note The @c .argus state directory is always excluded.
  */
 QList<ScannedFile> scanDirectory(const QString &root,
                                  const ScanOptions &options,
                                  const std::atomic_bool *cancel = nullptr,
                                  const std::function<void(int)> &progress = {});
 
-} // namespace iw
+} // namespace argus

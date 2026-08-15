@@ -1,6 +1,6 @@
 @echo off
 rem ---------------------------------------------------------------------------
-rem  Build ImageWorker on Windows.
+rem  Build Argus on Windows.
 rem
 rem   build.bat                 configure and build, release, with inference
 rem   build.bat debug           debug build
@@ -43,7 +43,7 @@ rem that contains both spaces and parentheses — %ProgramFiles(x86)% — throug
 rem `for /f`, which hands the command to a nested cmd and mangles it. The
 rem symptom is "'vswhere.exe' is not recognized" while the file plainly exists.
 set "VSPATH="
-set "VSTMP=%TEMP%\imageworker_vs.txt"
+set "VSTMP=%TEMP%\argus_vs.txt"
 if exist "%VSTMP%" del "%VSTMP%" >nul 2>&1
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0find-vs.ps1" -OutFile "%VSTMP%" >nul 2>&1
 if not exist "%VSTMP%" goto no_vs
@@ -102,9 +102,9 @@ if exist "%ROOT%\build\%PRESET%" rmdir /s /q "%ROOT%\build\%PRESET%"
 :configure
 cmake -S "%ROOT%" --preset %PRESET% ^
       -DCMAKE_PREFIX_PATH="%QTDIR%" ^
-      -DIMAGEWORKER_WITH_INFERENCE=%INFERENCE% ^
-      -DIMAGEWORKER_ORT_ROOT="%ORT_ROOT%" ^
-      -DIMAGEWORKER_OPENCV_DIR="%OPENCV_DIR%"
+      -DARGUS_WITH_INFERENCE=%INFERENCE% ^
+      -DARGUS_ORT_ROOT="%ORT_ROOT%" ^
+      -DARGUS_OPENCV_DIR="%OPENCV_DIR%"
 if errorlevel 1 exit /b 1
 
 if "%DO_PACKAGE%"=="1" goto build_install

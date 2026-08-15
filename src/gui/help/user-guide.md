@@ -1,6 +1,9 @@
-# Using ImageWorker
+# Using Argus
 
-ImageWorker answers two questions about a folder of `png` and `jpg` files:
+> *Argus Panoptes, the hundred-eyed giant: half his eyes stayed open while
+> the rest slept, so nothing ever passed him unseen.*
+
+Argus answers two questions about a folder of `png` and `jpg` files:
 
 - **Where does this asset appear in my screenshot?** — the main job.
 - **Which files in this folder are duplicates?** — the secondary one.
@@ -9,10 +12,10 @@ ImageWorker answers two questions about a folder of `png` and `jpg` files:
 
 ## 1. Point it at a folder
 
-**Images** is the folder to search. **Index in** is where ImageWorker keeps its
+**Images** is the folder to search. **Index in** is where Argus keeps its
 own data: the database, the previews and the descriptors.
 
-By default the index goes into a hidden `.imageworker` folder inside the image
+By default the index goes into a hidden `.argus` folder inside the image
 folder. Change **Index in** when the images live on a read-only or network
 share, when you would rather not add anything to someone else's repository, or
 when the index belongs on a faster disk. **Default** puts it back.
@@ -68,8 +71,8 @@ If **Locate object** is disabled, the index has no descriptors yet. Build them
 once from the command line:
 
 ```
-imageworker index "<image folder>" --db "<index folder>\index.db" --features
-imageworker vocab "<image folder>" --db "<index folder>\index.db"
+argus index "<image folder>" --db "<index folder>\index.db" --features
+argus vocab "<image folder>" --db "<index folder>\index.db"
 ```
 
 ---
@@ -125,7 +128,7 @@ Re-indexing is cheap: a branch whose tip has not moved is skipped entirely, and
 within a branch only files whose content actually changed are re-read.
 
 > **Git LFS**: the images are resolved from your local LFS store. If a branch
-> was never fetched, ImageWorker says how many objects are missing and that
+> was never fetched, Argus says how many objects are missing and that
 > `git lfs fetch --all` will get them — it never downloads anything by itself.
 
 ---

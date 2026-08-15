@@ -1,6 +1,9 @@
-# Cómo usar ImageWorker
+# Cómo usar Argus
 
-ImageWorker responde a dos preguntas sobre una carpeta de archivos `png` y
+> *Argos Panoptes, el gigante de cien ojos: la mitad de sus ojos seguían abiertos
+> mientras los demás dormían, así que nada se le escapaba.*
+
+Argus responde a dos preguntas sobre una carpeta de archivos `png` y
 `jpg`:
 
 - **¿Dónde aparece este recurso en mi captura de pantalla?** — la tarea
@@ -12,10 +15,10 @@ ImageWorker responde a dos preguntas sobre una carpeta de archivos `png` y
 ## 1. Apuntar a una carpeta
 
 **Imágenes** es la carpeta en la que buscar. **Índice en** es el lugar donde
-ImageWorker guarda sus propios datos: la base de datos, las miniaturas y los
+Argus guarda sus propios datos: la base de datos, las miniaturas y los
 descriptores.
 
-De forma predeterminada el índice va a una carpeta oculta `.imageworker` dentro
+De forma predeterminada el índice va a una carpeta oculta `.argus` dentro
 de la carpeta de imágenes. Cambie **Índice en** cuando las imágenes estén en un
 recurso de red o de solo lectura, cuando prefiera no añadir nada al repositorio
 de otra persona, o cuando el índice deba ir en un disco más rápido.
@@ -74,8 +77,8 @@ Si **Localizar un objeto** está desactivado, el índice todavía no tiene
 descriptores. Créelos una vez desde la línea de comandos:
 
 ```
-imageworker index "<carpeta de imágenes>" --db "<carpeta de índice>\index.db" --features
-imageworker vocab "<carpeta de imágenes>" --db "<carpeta de índice>\index.db"
+argus index "<carpeta de imágenes>" --db "<carpeta de índice>\index.db" --features
+argus vocab "<carpeta de imágenes>" --db "<carpeta de índice>\index.db"
 ```
 
 ---
@@ -133,7 +136,7 @@ Reindexar sale barato: una rama cuya punta no se ha movido se omite por completo
 y dentro de una rama solo se releen los archivos cuyo contenido cambió de verdad.
 
 > **Git LFS**: las imágenes se resuelven desde su almacén LFS local. Si una rama
-> nunca se descargó, ImageWorker dice cuántos objetos faltan y que
+> nunca se descargó, Argus dice cuántos objetos faltan y que
 > `git lfs fetch --all` los trae; por su cuenta no descarga nada.
 
 ---

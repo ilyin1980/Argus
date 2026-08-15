@@ -8,7 +8,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 
-namespace iw {
+namespace argus {
 
 QList<ScannedFile> scanDirectory(const QString &root,
                                  const ScanOptions &options,
@@ -81,4 +81,4 @@ QList<ScannedFile> scanDirectory(const QString &root,
     return out;
 }
 
-} // namespace iw
+} // namespace argus

@@ -5,12 +5,12 @@
 
 #include <algorithm>
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 #include <opencv2/core.hpp>
 #include <opencv2/flann.hpp>
 #endif
 
-namespace iw {
+namespace argus {
 
 namespace {
 
@@ -23,7 +23,7 @@ constexpr int kMinSamplesPerWord = 12;
 
 } // namespace
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 struct Vocabulary::Impl {
     cv::Mat centres;                       ///< words x dim, CV_32F.
@@ -200,7 +200,7 @@ QList<quint32> Vocabulary::assign(const QList<float> &descriptors, int count) co
     return out;
 }
 
-#else // IMAGEWORKER_WITH_INFERENCE
+#else // ARGUS_WITH_INFERENCE
 
 struct Vocabulary::Impl {};
 
@@ -235,6 +235,6 @@ std::unique_ptr<Vocabulary> Vocabulary::load(const QString &, QString *error)
 
 QList<quint32> Vocabulary::assign(const QList<float> &, int) const { return {}; }
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE
 
-} // namespace iw
+} // namespace argus

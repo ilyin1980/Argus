@@ -66,19 +66,19 @@ QString humanBytes(qint64 bytes)
 
 void printUsage()
 {
-    err() << "imageworker " << IMAGEWORKER_VERSION << " — duplicate and similar image finder\n\n"
+    err() << "argus " << ARGUS_VERSION << " — duplicate and similar image finder\n\n"
           << "Usage:\n"
-          << "  imageworker index <dir> [options]        build or refresh the index\n"
-          << "  imageworker dupes <dir> [options]        report duplicate groups\n"
-          << "  imageworker query <dir> --image <file>   rank images by similarity\n"
-          << "  imageworker find  <dir> --image <shot>   locate indexed assets in a screenshot\n"
-          << "  imageworker stats <dir> [options]        summarise an existing index\n"
-          << "  imageworker formats                      list readable image formats\n"
-          << "  imageworker vocab <dir> [options]        train the visual vocabulary\n"
-          << "  imageworker match --query q --asset a    match two images, verify geometry\n"
-          << "  imageworker doctor [--model f.onnx]      report the neural backend state\n"
+          << "  argus index <dir> [options]        build or refresh the index\n"
+          << "  argus dupes <dir> [options]        report duplicate groups\n"
+          << "  argus query <dir> --image <file>   rank images by similarity\n"
+          << "  argus find  <dir> --image <shot>   locate indexed assets in a screenshot\n"
+          << "  argus stats <dir> [options]        summarise an existing index\n"
+          << "  argus formats                      list readable image formats\n"
+          << "  argus vocab <dir> [options]        train the visual vocabulary\n"
+          << "  argus match --query q --asset a    match two images, verify geometry\n"
+          << "  argus doctor [--model f.onnx]      report the neural backend state\n"
           << "\n"
-          << "Run 'imageworker <command> --help' for per-command options.\n";
+          << "Run 'argus <command> --help' for per-command options.\n";
     err().flush();
 }
 
@@ -99,7 +99,7 @@ struct CommonOptions {
  */
 QString fullPath(const QString &root, const QString &rel)
 {
-    return QDir::toNativeSeparators(iw::absolutePathFor(root, rel));
+    return QDir::toNativeSeparators(argus::absolutePathFor(root, rel));
 }
 
 /**
@@ -112,7 +112,7 @@ QString fullPath(const QString &root, const QString &rel)
  * path for it would be a lie that scripts would then act on. <tt>git show</tt>
  * accepts what is printed instead, so the output stays directly usable.
  */
-QString locationOf(const QString &root, const iw::FileInfoRow &row)
+QString locationOf(const QString &root, const argus::FileInfoRow &row)
 {
     if (row.ref.isEmpty())
         return fullPath(root, row.rel);
@@ -138,14 +138,14 @@ void warnAboutMatcherChoice(const QString &modelPath, const QString &provider)
 
     err() << "warning: the fp16 matcher is only reliable on DirectML; on "
           << provider << " it will be slow or silently find nothing.\n"
-          << "         drop --matcher to let ImageWorker pick the right export.\n";
+          << "         drop --matcher to let Argus pick the right export.\n";
 }
 
 /** @brief Add the options shared by all commands to @p parser. */
 void addCommonOptions(QCommandLineParser &parser)
 {
     parser.addOption({ QStringLiteral("db"),
-                       QStringLiteral("Database file. Defaults to <dir>/.imageworker/index.db."),
+                       QStringLiteral("Database file. Defaults to <dir>/.argus/index.db."),
                        QStringLiteral("path") });
     parser.addOption({ QStringLiteral("json"),
                        QStringLiteral("Emit newline-delimited JSON on stdout.") });
@@ -171,7 +171,7 @@ bool resolveCommon(const QCommandLineParser &parser, CommonOptions &common, bool
         return false;
     }
 
-    common.root  = iw::normalizeRoot(positional.first());
+    common.root  = argus::normalizeRoot(positional.first());
     common.json  = parser.isSet(QStringLiteral("json"));
     common.paths = parser.isSet(QStringLiteral("paths"));
     common.quiet = parser.isSet(QStringLiteral("quiet"));
@@ -192,7 +192,7 @@ bool resolveCommon(const QCommandLineParser &parser, CommonOptions &common, bool
     common.dbPath = parser.value(QStringLiteral("db"));
     if (common.dbPath.isEmpty()) {
         QString error;
-        common.dbPath = iw::defaultDatabasePath(common.root, &error);
+        common.dbPath = argus::defaultDatabasePath(common.root, &error);
         if (common.dbPath.isEmpty()) {
             err() << "error: " << error << "\n";
             return false;
@@ -201,14 +201,14 @@ bool resolveCommon(const QCommandLineParser &parser, CommonOptions &common, bool
 
     if (requireExistingDb && !QFileInfo::exists(common.dbPath)) {
         err() << "error: no index at " << common.dbPath << "\n"
-              << "hint: run 'imageworker index " << common.root << "' first\n";
+              << "hint: run 'argus index " << common.root << "' first\n";
         return false;
     }
     return true;
 }
 
 /** @brief Open a database, reporting failures on stderr. */
-bool openDatabase(iw::Database &db, const QString &path)
+bool openDatabase(argus::Database &db, const QString &path)
 {
     QString error;
     if (!db.open(path, &error)) {
@@ -272,7 +272,7 @@ int cmdIndex(const QStringList &args)
     if (!resolveCommon(parser, common, false))
         return ExitError;
 
-    iw::IndexOptions options;
+    argus::IndexOptions options;
     options.root        = common.root;
     options.dbPath      = common.dbPath;
     options.thumbnails  = !parser.isSet(QStringLiteral("no-thumbs"));
@@ -287,7 +287,7 @@ int cmdIndex(const QStringList &args)
     options.featureUseGpu   = !parser.isSet(QStringLiteral("feature-cpu"));
     options.featureModelPath = parser.isSet(QStringLiteral("feature-model"))
                                    ? parser.value(QStringLiteral("feature-model"))
-                                   : iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
+                                   : argus::defaultModelsDir() + QStringLiteral("/disk.onnx");
     if (parser.isSet(QStringLiteral("keypoints")))
         options.featureMaxKeypoints = parser.value(QStringLiteral("keypoints")).toInt();
     if (parser.isSet(QStringLiteral("feature-side")))
@@ -306,7 +306,7 @@ int cmdIndex(const QStringList &args)
         options.syncBranches = true;
 
         const QString value = parser.value(QStringLiteral("branches")).trimmed();
-        const iw::git::RepoInfo repo = iw::git::inspect(common.root);
+        const argus::git::RepoInfo repo = argus::git::inspect(common.root);
         if (!repo.isRepo) {
             err() << "error: " << common.root << " is not inside a git repository\n";
             return ExitError;
@@ -314,7 +314,7 @@ int cmdIndex(const QStringList &args)
 
         if (value.compare(QLatin1String("all"), Qt::CaseInsensitive) == 0) {
             QString branchError;
-            options.branches = iw::git::branches(
+            options.branches = argus::git::branches(
                 repo.topLevel, parser.isSet(QStringLiteral("remote-branches")), &branchError);
             if (options.branches.isEmpty()) {
                 err() << "error: no branches found: " << branchError << "\n";
@@ -332,11 +332,11 @@ int cmdIndex(const QStringList &args)
         options.branches.removeDuplicates();
     }
 
-    iw::Indexer indexer;
+    argus::Indexer indexer;
     if (!common.quiet) {
-        QObject::connect(&indexer, &iw::Indexer::message,
+        QObject::connect(&indexer, &argus::Indexer::message,
                          [](const QString &text) { err() << text << "\n"; err().flush(); });
-        QObject::connect(&indexer, &iw::Indexer::progress,
+        QObject::connect(&indexer, &argus::Indexer::progress,
                          [](int done, int total, const QString &stage) {
                              if (total > 0)
                                  err() << "\r" << stage << ": " << done << "/" << total << "   ";
@@ -347,7 +347,7 @@ int cmdIndex(const QStringList &args)
     }
 
     QString error;
-    const iw::IndexStats stats = indexer.run(options, &error);
+    const argus::IndexStats stats = indexer.run(options, &error);
     if (!common.quiet)
         err() << "\n";
 
@@ -357,7 +357,7 @@ int cmdIndex(const QStringList &args)
     }
 
     if (common.json) {
-        out() << iw::toLine(iw::toJson(stats)) << "\n";
+        out() << argus::toLine(argus::toJson(stats)) << "\n";
         out().flush();
     } else {
         out() << "scanned " << stats.scanned
@@ -413,7 +413,7 @@ int cmdDupes(const QStringList &args)
     if (!resolveCommon(parser, common, true))
         return ExitError;
 
-    iw::DuplicateOptions options;
+    argus::DuplicateOptions options;
     if (parser.isSet(QStringLiteral("distance")))
         options.maxDistance = parser.value(QStringLiteral("distance")).toInt();
     if (parser.isSet(QStringLiteral("bucket-limit")))
@@ -425,12 +425,12 @@ int cmdDupes(const QStringList &args)
     if (parser.isSet(QStringLiteral("phash-only")))
         options.requireBothHashes = false;
 
-    iw::Database db;
+    argus::Database db;
     if (!openDatabase(db, common.dbPath))
         return ExitError;
 
-    const iw::DuplicateReport report =
-        iw::findDuplicates(db, options, nullptr,
+    const argus::DuplicateReport report =
+        argus::findDuplicates(db, options, nullptr,
                            [&](int done, int total, const QString &stage) {
                                if (common.quiet)
                                    return;
@@ -449,28 +449,28 @@ int cmdDupes(const QStringList &args)
         // One group per block, blank line between blocks: enough structure to
         // regroup with awk, still trivially pipeable into xargs.
         bool first = true;
-        for (const iw::DuplicateGroup &group : report.groups) {
+        for (const argus::DuplicateGroup &group : report.groups) {
             if (!first)
                 out() << "\n";
             first = false;
-            for (const iw::FileInfoRow &file : group.files)
+            for (const argus::FileInfoRow &file : group.files)
                 out() << locationOf(common.root, file) << "\n";
         }
     } else if (common.json) {
-        for (const iw::DuplicateGroup &group : report.groups)
-            out() << iw::toLine(iw::toJson(group, common.root)) << "\n";
-        out() << iw::toLine(iw::summaryJson(report)) << "\n";
+        for (const argus::DuplicateGroup &group : report.groups)
+            out() << argus::toLine(argus::toJson(group, common.root)) << "\n";
+        out() << argus::toLine(argus::summaryJson(report)) << "\n";
     } else {
         int number = 0;
-        for (const iw::DuplicateGroup &group : report.groups) {
+        for (const argus::DuplicateGroup &group : report.groups) {
             out() << "\n#" << ++number << "  "
-                  << (group.kind == iw::GroupKind::Exact ? "exact" : "near")
+                  << (group.kind == argus::GroupKind::Exact ? "exact" : "near")
                   << "  " << group.files.size() << " files"
                   << "  wasted " << humanBytes(group.wastedBytes);
-            if (group.kind == iw::GroupKind::Near)
+            if (group.kind == argus::GroupKind::Near)
                 out() << "  distance<=" << group.maxDistance;
             out() << "\n";
-            for (const iw::FileInfoRow &file : group.files) {
+            for (const argus::FileInfoRow &file : group.files) {
                 out() << "    " << locationOf(common.root, file)
                       << "  (" << file.width << "x" << file.height
                       << ", " << humanBytes(file.size) << ")\n";
@@ -520,31 +520,31 @@ int cmdQuery(const QStringList &args)
         return ExitError;
     }
 
-    iw::QueryOptions options;
+    argus::QueryOptions options;
     if (parser.isSet(QStringLiteral("top")))
         options.topK = parser.value(QStringLiteral("top")).toInt();
     if (parser.isSet(QStringLiteral("max-distance")))
         options.maxDistance = parser.value(QStringLiteral("max-distance")).toInt();
 
-    iw::Database db;
+    argus::Database db;
     if (!openDatabase(db, common.dbPath))
         return ExitError;
 
     QString error;
-    const iw::QueryResult result = iw::queryByImage(db, imagePath, options, &error);
+    const argus::QueryResult result = argus::queryByImage(db, imagePath, options, &error);
     if (!error.isEmpty()) {
         err() << "error: " << error << "\n";
         return ExitError;
     }
 
     if (common.paths) {
-        for (const iw::Match &match : result.matches)
+        for (const argus::Match &match : result.matches)
             out() << locationOf(common.root, match.file) << "\n";
     } else if (common.json) {
-        for (const iw::Match &match : result.matches)
-            out() << iw::toLine(iw::toJson(match, common.root)) << "\n";
+        for (const argus::Match &match : result.matches)
+            out() << argus::toLine(argus::toJson(match, common.root)) << "\n";
     } else {
-        for (const iw::Match &match : result.matches) {
+        for (const argus::Match &match : result.matches) {
             out() << QString::number(match.score, 'f', 4) << "  "
                   << "d=" << match.distance << "  "
                   << locationOf(common.root, match.file) << "\n";
@@ -574,12 +574,12 @@ int cmdStats(const QStringList &args)
     if (!resolveCommon(parser, common, true))
         return ExitError;
 
-    iw::Database db;
+    argus::Database db;
     if (!openDatabase(db, common.dbPath))
         return ExitError;
 
-    const iw::DatabaseSummary summary = db.summary();
-    const QList<iw::FileInfoRow> sparse =
+    const argus::DatabaseSummary summary = db.summary();
+    const QList<argus::FileInfoRow> sparse =
         db.filesWithFewFeatures(QStringLiteral("disk"), 8);
 
     if (common.json) {
@@ -594,10 +594,10 @@ int cmdStats(const QStringList &args)
         o.insert(QStringLiteral("last_indexed"), db.metaValue(QStringLiteral("last_indexed")));
         o.insert(QStringLiteral("low_texture"), static_cast<int>(sparse.size()));
         QJsonArray sparsePaths;
-        for (const iw::FileInfoRow &row : sparse)
+        for (const argus::FileInfoRow &row : sparse)
             sparsePaths.append(fullPath(common.root, row.rel));
         o.insert(QStringLiteral("low_texture_files"), sparsePaths);
-        out() << iw::toLine(o) << "\n";
+        out() << argus::toLine(o) << "\n";
     } else {
         out() << "database : " << common.dbPath << "\n"
               << "root     : " << db.metaValue(QStringLiteral("root")) << "\n"
@@ -609,7 +609,7 @@ int cmdStats(const QStringList &args)
             out() << "low texture : " << sparse.size()
                   << " images with 8 or fewer keypoints; local features cannot "
                      "locate these\n";
-            for (const iw::FileInfoRow &row : std::as_const(sparse).first(std::min<qsizetype>(8, sparse.size())))
+            for (const argus::FileInfoRow &row : std::as_const(sparse).first(std::min<qsizetype>(8, sparse.size())))
                 out() << "              " << row.rel << "  (" << row.width << "x" << row.height << ")\n";
         }
     }
@@ -629,15 +629,15 @@ int cmdFormats(const QStringList &args)
     parser.addOption({ QStringLiteral("json"), QStringLiteral("Emit JSON.") });
     parser.process(args);
 
-    const QStringList indexed   = iw::defaultExtensions();
-    const QStringList available = iw::supportedExtensions();
+    const QStringList indexed   = argus::defaultExtensions();
+    const QStringList available = argus::supportedExtensions();
 
     if (parser.isSet(QStringLiteral("json"))) {
         QJsonObject o;
         o.insert(QStringLiteral("type"), QStringLiteral("formats"));
         o.insert(QStringLiteral("indexed"), QJsonArray::fromStringList(indexed));
         o.insert(QStringLiteral("readable"), QJsonArray::fromStringList(available));
-        out() << iw::toLine(o) << "\n";
+        out() << argus::toLine(o) << "\n";
     } else {
         out() << "indexed by default : " << indexed.join(QStringLiteral(", ")) << "\n"
               << "readable in build  : " << available.join(QStringLiteral(", ")) << "\n";
@@ -724,7 +724,7 @@ int cmdFind(const QStringList &args)
         image = image.copy(clipped);
     }
 
-    iw::FindOptions options;
+    argus::FindOptions options;
     if (parser.isSet(QStringLiteral("shortlist")))
         options.shortlist = parser.value(QStringLiteral("shortlist")).toInt();
     if (parser.isSet(QStringLiteral("top")))
@@ -743,7 +743,7 @@ int cmdFind(const QStringList &args)
     QString error;
     QElapsedTimer timer;
     timer.start();
-    auto finder = iw::ObjectFinder::create(common.dbPath, options, &error);
+    auto finder = argus::ObjectFinder::create(common.dbPath, options, &error);
     if (!finder) {
         err() << "error: " << error << "\n";
         return ExitError;
@@ -751,7 +751,7 @@ int cmdFind(const QStringList &args)
     const qint64 loadMs = timer.elapsed();
 
     timer.restart();
-    const QList<iw::FindResult> results =
+    const QList<argus::FindResult> results =
         finder->find(image, options, nullptr,
                      [&](int done, int total) {
                          if (common.quiet)
@@ -770,11 +770,11 @@ int cmdFind(const QStringList &args)
     }
 
     if (common.paths) {
-        for (const iw::FindResult &r : results)
+        for (const argus::FindResult &r : results)
             out() << locationOf(common.root, r.file) << "\n";
     } else if (common.json) {
-        for (const iw::FindResult &r : results) {
-            QJsonObject o = iw::toJson(r.file, common.root);
+        for (const argus::FindResult &r : results) {
+            QJsonObject o = argus::toJson(r.file, common.root);
             o.insert(QStringLiteral("type"), QStringLiteral("find"));
             o.insert(QStringLiteral("inliers"), r.inliers);
             o.insert(QStringLiteral("matches"), r.matches);
@@ -787,7 +787,7 @@ int cmdFind(const QStringList &args)
             box.insert(QStringLiteral("w"), r.box.width());
             box.insert(QStringLiteral("h"), r.box.height());
             o.insert(QStringLiteral("box"), box);
-            out() << iw::toLine(o) << "\n";
+            out() << argus::toLine(o) << "\n";
         }
         QJsonObject s;
         s.insert(QStringLiteral("type"), QStringLiteral("find_summary"));
@@ -797,15 +797,15 @@ int cmdFind(const QStringList &args)
         s.insert(QStringLiteral("load_ms"), static_cast<double>(loadMs));
         s.insert(QStringLiteral("search_ms"), static_cast<double>(searchMs));
         s.insert(QStringLiteral("provider"), finder->provider());
-        out() << iw::toLine(s) << "\n";
+        out() << argus::toLine(s) << "\n";
     } else {
-        out() << "searched " << finder->documentCount() << " indexed images on "
+        out() << "searched " << finder->documentCount() << " indexed tiles on "
               << finder->provider() << ", shortlist " << options.shortlist
               << ", " << searchMs << " ms (models loaded in " << loadMs << " ms)\n\n";
         if (results.isEmpty()) {
             out() << "nothing matched\n";
         } else {
-            for (const iw::FindResult &r : results) {
+            for (const argus::FindResult &r : results) {
                 if (r.channel == QLatin1String("correlation")) {
                     out() << QString::asprintf("%.3f  correlation %4.2fx  ", r.score, r.scale);
                 } else {
@@ -859,18 +859,18 @@ int cmdMatch(const QStringList &args)
     const bool json = parser.isSet(QStringLiteral("json"));
     const QString extractorPath = parser.isSet(QStringLiteral("extractor"))
                                       ? parser.value(QStringLiteral("extractor"))
-                                      : iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
+                                      : argus::defaultModelsDir() + QStringLiteral("/disk.onnx");
     const QString matcherPath = parser.isSet(QStringLiteral("matcher"))
                                     ? parser.value(QStringLiteral("matcher"))
-                                    : iw::preferredMatcherModel(iw::defaultModelsDir());
+                                    : argus::preferredMatcherModel(argus::defaultModelsDir());
 
     QString error;
-    auto extractor = iw::FeatureExtractor::create(extractorPath, true, &error);
+    auto extractor = argus::FeatureExtractor::create(extractorPath, true, &error);
     if (!extractor) {
         err() << "error: " << error << "\n";
         return ExitError;
     }
-    auto matcher = iw::FeatureMatcher::create(matcherPath, true, &error);
+    auto matcher = argus::FeatureMatcher::create(matcherPath, true, &error);
     if (!matcher) {
         err() << "error: " << error << "\n";
         return ExitError;
@@ -879,7 +879,7 @@ int cmdMatch(const QStringList &args)
     if (parser.isSet(QStringLiteral("matcher")))
         warnAboutMatcherChoice(matcherPath, matcher->provider());
 
-    iw::ExtractorOptions extractorOptions;
+    argus::ExtractorOptions extractorOptions;
     if (parser.isSet(QStringLiteral("keypoints")))
         extractorOptions.maxKeypoints = parser.value(QStringLiteral("keypoints")).toInt();
 
@@ -896,9 +896,9 @@ int cmdMatch(const QStringList &args)
     }
 
     // The query is a screenshot: it has no alpha to mask against.
-    iw::ExtractorOptions queryOptions = extractorOptions;
+    argus::ExtractorOptions queryOptions = extractorOptions;
     queryOptions.useAlphaMask = false;
-    const iw::FeatureSet queryFeatures = extractor->extract(queryImage, queryOptions, &error);
+    const argus::FeatureSet queryFeatures = extractor->extract(queryImage, queryOptions, &error);
     if (queryFeatures.isEmpty()) {
         err() << "error: no features in the query: " << error << "\n";
         return ExitError;
@@ -922,12 +922,12 @@ int cmdMatch(const QStringList &args)
             continue;
         }
 
-        const iw::FeatureSet assetFeatures = extractor->extract(assetImage, extractorOptions, &error);
+        const argus::FeatureSet assetFeatures = extractor->extract(assetImage, extractorOptions, &error);
 
         QElapsedTimer timer;
         timer.start();
-        const QList<iw::FeatureMatch> matches = matcher->match(queryFeatures, assetFeatures, &error);
-        const iw::GeometryResult geometry = iw::verifyHomography(queryFeatures, assetFeatures, matches);
+        const QList<argus::FeatureMatch> matches = matcher->match(queryFeatures, assetFeatures, &error);
+        const argus::GeometryResult geometry = argus::verifyHomography(queryFeatures, assetFeatures, matches);
         const qint64 ms = timer.elapsed();
 
         anyVerified = anyVerified || geometry.ok;
@@ -975,7 +975,7 @@ int cmdMatch(const QStringList &args)
         root.insert(QStringLiteral("query_keypoints"), queryFeatures.count());
         root.insert(QStringLiteral("normalized"), matcher->normalizeKeypoints());
         root.insert(QStringLiteral("results"), results);
-        out() << iw::toLine(root) << "\n";
+        out() << argus::toLine(root) << "\n";
     }
     out().flush();
     return anyVerified ? ExitFound : ExitNotFound;
@@ -1019,7 +1019,7 @@ int cmdTemplate(const QStringList &args)
         return ExitError;
     }
 
-    iw::TemplateOptions options;
+    argus::TemplateOptions options;
     if (parser.isSet(QStringLiteral("min-score")))
         options.minScore = parser.value(QStringLiteral("min-score")).toDouble();
     if (parser.isSet(QStringLiteral("scales")))
@@ -1040,7 +1040,7 @@ int cmdTemplate(const QStringList &args)
 
         QElapsedTimer timer;
         timer.start();
-        const iw::TemplateHit hit = iw::matchByTemplate(query, asset, options);
+        const argus::TemplateHit hit = argus::matchByTemplate(query, asset, options);
         const qint64 ms = timer.elapsed();
         anyFound = anyFound || hit.ok;
 
@@ -1079,7 +1079,7 @@ int cmdTemplate(const QStringList &args)
 
     if (json) {
         for (const QJsonValue &v : std::as_const(results))
-            out() << iw::toLine(v.toObject()) << "\n";
+            out() << argus::toLine(v.toObject()) << "\n";
     }
     out().flush();
     return anyFound ? ExitFound : ExitNotFound;
@@ -1116,35 +1116,35 @@ int cmdVocab(const QStringList &args)
                               ? parser.value(QStringLiteral("model"))
                               : QStringLiteral("disk");
 
-    iw::VocabularyOptions vocabOptions;
+    argus::VocabularyOptions vocabOptions;
     if (parser.isSet(QStringLiteral("words")))
         vocabOptions.words = parser.value(QStringLiteral("words")).toInt();
     if (parser.isSet(QStringLiteral("sample")))
         vocabOptions.sampleDescriptors = parser.value(QStringLiteral("sample")).toInt();
 
-    iw::Database db;
+    argus::Database db;
     if (!openDatabase(db, common.dbPath))
         return ExitError;
 
     const QString featureDir = QFileInfo(common.dbPath).absolutePath() + QStringLiteral("/features");
-    iw::DescriptorStore store;
+    argus::DescriptorStore store;
     QString error;
     if (!store.open(featureDir, &error)) {
         err() << "error: " << error << "\n";
         return ExitError;
     }
 
-    const QList<iw::FeatureRecord> records = db.allFeatures(model);
+    const QList<argus::FeatureRecord> records = db.allFeatures(model);
     if (records.isEmpty()) {
         err() << "error: no descriptors for model '" << model << "'\n"
-              << "hint: run 'imageworker index " << common.root << " --features' first\n";
+              << "hint: run 'argus index " << common.root << " --features' first\n";
         return ExitError;
     }
 
     // Sample evenly across the whole library rather than taking the first N
     // images, so the vocabulary is not dominated by one folder.
     qint64 totalKeypoints = 0;
-    for (const iw::FeatureRecord &r : records)
+    for (const argus::FeatureRecord &r : records)
         totalKeypoints += r.count;
     const int stride = std::max<qint64>(
         1, totalKeypoints / std::max(1, vocabOptions.sampleDescriptors));
@@ -1158,14 +1158,14 @@ int cmdVocab(const QStringList &args)
     QList<float> sample;
     int dim = 0;
     qint64 seen = 0;
-    for (const iw::FeatureRecord &record : records) {
-        iw::FeatureLocation location;
+    for (const argus::FeatureRecord &record : records) {
+        argus::FeatureLocation location;
         location.descOffset = record.descOffset;
         location.kptsOffset = record.kptsOffset;
         location.count      = record.count;
         location.dim        = record.dim;
 
-        const iw::FeatureSet features = store.load(location, record.imageWidth, record.imageHeight);
+        const argus::FeatureSet features = store.load(location, record.imageWidth, record.imageHeight);
         if (features.isEmpty())
             continue;
         dim = features.dim;
@@ -1185,7 +1185,7 @@ int cmdVocab(const QStringList &args)
 
     QElapsedTimer timer;
     timer.start();
-    auto vocabulary = iw::Vocabulary::train(sample, dim, model, vocabOptions, &error);
+    auto vocabulary = argus::Vocabulary::train(sample, dim, model, vocabOptions, &error);
     if (!vocabulary) {
         err() << "error: " << error << "\n";
         return ExitError;
@@ -1199,7 +1199,7 @@ int cmdVocab(const QStringList &args)
     }
 
     timer.restart();
-    auto index = iw::BowIndex::build(db, store, *vocabulary, model, nullptr,
+    auto index = argus::BowIndex::build(db, store, *vocabulary, model, nullptr,
                                      [&](int done, int total) {
                                          if (common.quiet)
                                              return;
@@ -1221,7 +1221,7 @@ int cmdVocab(const QStringList &args)
         return ExitError;
     }
 
-    const iw::BowStats stats = index->stats();
+    const argus::BowStats stats = index->stats();
 
     if (common.json) {
         QJsonObject o;
@@ -1235,7 +1235,7 @@ int cmdVocab(const QStringList &args)
         o.insert(QStringLiteral("build_ms"), static_cast<double>(buildMs));
         o.insert(QStringLiteral("vocab_path"), vocabPath);
         o.insert(QStringLiteral("bow_path"), bowPath);
-        out() << iw::toLine(o) << "\n";
+        out() << argus::toLine(o) << "\n";
     } else {
         out() << "sampled    : " << (sample.size() / dim) << " descriptors of " << dim << "d\n"
               << "vocabulary : " << stats.words << " words, trained in "
@@ -1254,7 +1254,7 @@ int cmdVocab(const QStringList &args)
 // ---------------------------------------------------------------------------
 
 /** @brief Render one tensor signature as "name: type[d0,d1,...]". */
-QString describeTensor(const iw::TensorSpec &spec)
+QString describeTensor(const argus::TensorSpec &spec)
 {
     QStringList dims;
     for (qint64 d : spec.shape)
@@ -1285,7 +1285,7 @@ int cmdDoctor(const QStringList &args)
 
     const bool json = parser.isSet(QStringLiteral("json"));
     const bool preferDml = !parser.isSet(QStringLiteral("cpu"));
-    const iw::RuntimeInfo rt = iw::probeRuntime();
+    const argus::RuntimeInfo rt = argus::probeRuntime();
 
     QJsonObject root;
     root.insert(QStringLiteral("type"), QStringLiteral("doctor"));
@@ -1301,7 +1301,7 @@ int cmdDoctor(const QStringList &args)
     if (!json) {
         out() << "inference build : " << (rt.built ? "yes" : "no") << "\n";
         if (!rt.built) {
-            out() << "hint            : reconfigure with -DIMAGEWORKER_WITH_INFERENCE=ON\n";
+            out() << "hint            : reconfigure with -DARGUS_WITH_INFERENCE=ON\n";
             out().flush();
             return ExitNotFound;
         }
@@ -1317,7 +1317,7 @@ int cmdDoctor(const QStringList &args)
     QJsonArray models;
     bool allOk = true;
     for (const QString &path : parser.values(QStringLiteral("model"))) {
-        const iw::ModelInfo info = iw::inspectModel(path, preferDml);
+        const argus::ModelInfo info = argus::inspectModel(path, preferDml);
         allOk = allOk && info.ok;
 
         QJsonObject m;
@@ -1329,9 +1329,9 @@ int cmdDoctor(const QStringList &args)
             m.insert(QStringLiteral("error"), info.error);
 
         QJsonArray ins, outs;
-        for (const iw::TensorSpec &s : info.inputs)
+        for (const argus::TensorSpec &s : info.inputs)
             ins.append(describeTensor(s));
-        for (const iw::TensorSpec &s : info.outputs)
+        for (const argus::TensorSpec &s : info.outputs)
             outs.append(describeTensor(s));
         m.insert(QStringLiteral("inputs"), ins);
         m.insert(QStringLiteral("outputs"), outs);
@@ -1345,9 +1345,9 @@ int cmdDoctor(const QStringList &args)
             }
             out() << "  provider      : " << info.provider
                   << "   (loaded in " << info.loadMs << " ms)\n";
-            for (const iw::TensorSpec &s : info.inputs)
+            for (const argus::TensorSpec &s : info.inputs)
                 out() << "  in            : " << describeTensor(s) << "\n";
-            for (const iw::TensorSpec &s : info.outputs)
+            for (const argus::TensorSpec &s : info.outputs)
                 out() << "  out           : " << describeTensor(s) << "\n";
         }
     }
@@ -1358,10 +1358,10 @@ int cmdDoctor(const QStringList &args)
     if (!images.isEmpty()) {
         const QString extractorPath = parser.isSet(QStringLiteral("extractor"))
                                           ? parser.value(QStringLiteral("extractor"))
-                                          : iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
+                                          : argus::defaultModelsDir() + QStringLiteral("/disk.onnx");
 
         QString error;
-        auto extractor = iw::FeatureExtractor::create(extractorPath, preferDml, &error);
+        auto extractor = argus::FeatureExtractor::create(extractorPath, preferDml, &error);
         if (!extractor) {
             err() << "error: " << error << "\n";
             return ExitError;
@@ -1383,8 +1383,8 @@ int cmdDoctor(const QStringList &args)
 
             QElapsedTimer timer;
             timer.start();
-            iw::ExtractorOptions eo;
-            const iw::FeatureSet features = extractor->extract(image, eo, &error);
+            argus::ExtractorOptions eo;
+            const argus::FeatureSet features = extractor->extract(image, eo, &error);
             const qint64 ms = timer.elapsed();
 
             QJsonObject e;
@@ -1414,7 +1414,7 @@ int cmdDoctor(const QStringList &args)
     }
 
     if (json)
-        out() << iw::toLine(root) << "\n";
+        out() << argus::toLine(root) << "\n";
     out().flush();
 
     // A CPU-only machine is a working machine, just a slower one; only a real
@@ -1427,8 +1427,8 @@ int cmdDoctor(const QStringList &args)
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
-    QCoreApplication::setApplicationName(QStringLiteral("imageworker"));
-    QCoreApplication::setApplicationVersion(QStringLiteral(IMAGEWORKER_VERSION));
+    QCoreApplication::setApplicationName(QStringLiteral("argus"));
+    QCoreApplication::setApplicationVersion(QStringLiteral(ARGUS_VERSION));
 
     QStringList args = QCoreApplication::arguments();
     const QString command = args.size() > 1 ? args.at(1) : QString();
@@ -1444,7 +1444,7 @@ int main(int argc, char *argv[])
     }
     if (command == QLatin1String("-v") || command == QLatin1String("--version")
         || command == QLatin1String("version")) {
-        out() << "imageworker " << IMAGEWORKER_VERSION << "\n";
+        out() << "argus " << ARGUS_VERSION << "\n";
         out().flush();
         return ExitFound;
     }

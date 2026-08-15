@@ -27,7 +27,7 @@
 #include "core/FeatureMatcher.h"
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 /** @brief Knobs for one search. */
 struct FindOptions {
@@ -165,4 +165,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

@@ -1,4 +1,12 @@
-# ImageWorker
+<p align="center">
+  <img src="branding/argus-logo.png" alt="Argus — visual similarity search" width="560">
+</p>
+
+# Argus
+
+> Argus Panoptes, the hundred-eyed giant of the myth: half his eyes stayed open
+> while the rest slept, so nothing ever passed him unseen. That is the job —
+> watch a whole asset library at once and say where a picture came from.
 
 Finds images. Two related jobs, one core library, driven by both a Qt GUI and a
 headless CLI so that a person and an automation script get identical results.
@@ -55,9 +63,9 @@ On Linux and macOS, Qt and OpenCV come from the system package manager: the
 script checks for them and prints the single command that installs them, rather
 than claiming root for itself. Everything else — ONNX Runtime, the CUDA runtime
 and cuDNN where a card is present, the model weights — lands in `third_party/`,
-`~/imageworker-deps` and `models/`, none of which are in the repository.
+`~/argus-deps` and `models/`, none of which are in the repository.
 
-After a Unix build, `source ~/imageworker-deps/env.sh` before running the
+After a Unix build, `source ~/argus-deps/env.sh` before running the
 binaries, so the runtime libraries are found.
 
 ### By hand
@@ -66,7 +74,7 @@ Qt 6.4+ (Core, Gui, Sql, Widgets) and CMake 3.21. The neural backend is optional
 and off by default.
 
 ```bash
-cmake --preset msvc-release -DIMAGEWORKER_WITH_INFERENCE=ON && cmake --build --preset msvc-release
+cmake --preset msvc-release -DARGUS_WITH_INFERENCE=ON && cmake --build --preset msvc-release
 ```
 
 That needs ONNX Runtime and OpenCV under `third_party/`, and the models under
@@ -79,19 +87,19 @@ In Qt Creator: **File → Open File or Project →** `CMakeLists.txt`.
 ## CLI
 
 ```bash
-imageworker index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
-imageworker vocab  <dir> [--words 2048] [--sample 120000]
-imageworker find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist 200] [--top 10]
-imageworker dupes  <dir> [--distance 4] [--exact-only] [--near-only]
-imageworker query  <dir> --image ref.png [--top 20]
-imageworker match  --query q.png --asset a.png
-imageworker stats  <dir>
-imageworker doctor [--model m.onnx] [--extract img.png]
-imageworker formats
+argus index  <dir> [--features] [--jobs N] [--ext png,jpg] [--force]
+argus vocab  <dir> [--words 2048] [--sample 120000]
+argus find   <dir> --image shot.png [--roi x,y,w,h] [--shortlist 200] [--top 10]
+argus dupes  <dir> [--distance 4] [--exact-only] [--near-only]
+argus query  <dir> --image ref.png [--top 20]
+argus match  --query q.png --asset a.png
+argus stats  <dir>
+argus doctor [--model m.onnx] [--extract img.png]
+argus formats
 ```
 
 Every command takes `--db <path>` to put the index somewhere other than
-`<dir>/.imageworker`.
+`<dir>/.argus`.
 
 Output contract, which scripts and coding agents can rely on:
 
@@ -106,21 +114,21 @@ Output contract, which scripts and coding agents can rely on:
 - exit codes: `0` found something, `1` found nothing, `2` error.
 
 ```bash
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --paths | clip
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --paths | clip
 ```
 
 ### Typical session
 
 ```bash
-imageworker index D:/game/Assets --db D:/indexes/game/index.db --features
+argus index D:/game/Assets --db D:/indexes/game/index.db --features
 ```
 
 ```bash
-imageworker vocab D:/game/Assets --db D:/indexes/game/index.db
+argus vocab D:/game/Assets --db D:/indexes/game/index.db
 ```
 
 ```bash
-imageworker find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
+argus find D:/game/Assets --db D:/indexes/game/index.db --image shot.png --json
 ```
 
 Indexing is incremental: a file is re-read only when its size or mtime changed.
@@ -129,7 +137,7 @@ Indexing is incremental: a file is re-read only when its size or mtime changed.
 ## GUI
 
 ```bash
-imageworker-gui [dir] [--index <dir>]
+argus-gui [dir] [--index <dir>]
 ```
 
 **Images:** picks the folder to search; **Index in:** picks where the database,
@@ -161,10 +169,10 @@ models. Nothing needs installing on the target machine and nothing is read from
 cpack --config build/msvc-release/CPackConfig.cmake
 ```
 
-Produces `ImageWorker-<version>-<system>-<arch>.zip` — about 126 MB compressed,
+Produces `Argus-<version>-<system>-<arch>.zip` — about 126 MB compressed,
 227 MB unpacked.
 
-`-DIMAGEWORKER_PACKAGE_MODELS=OFF` leaves the 70 MB of ONNX weights out, for
+`-DARGUS_PACKAGE_MODELS=OFF` leaves the 70 MB of ONNX weights out, for
 builds that ship them separately.
 
 ### Not statically linked, and why
@@ -204,7 +212,7 @@ models/disk_lightglue_fused_fp16.onnx        LightGlue matcher
 All Apache-2.0 or MIT. SuperPoint is deliberately absent: its weights carry a
 non-commercial licence.
 
-`imageworker doctor` reports what the backend can actually do, including whether
+`argus doctor` reports what the backend can actually do, including whether
 DirectML works on the installed driver, and prints each model's tensor signature.
 
 ## How the search works

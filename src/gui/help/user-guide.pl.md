@@ -1,6 +1,9 @@
-# Jak używać ImageWorkera
+# Jak używać Argusa
 
-ImageWorker odpowiada na dwa pytania o katalog z plikami `png` i `jpg`:
+> *Argos Panoptes, stuoki olbrzym: połowa jego oczu zawsze pozostawała otwarta,
+> gdy reszta spała, więc nic nie umknęło jego uwadze.*
+
+Argus odpowiada na dwa pytania o katalog z plikami `png` i `jpg`:
 
 - **Gdzie ten zasób występuje na moim zrzucie ekranu?** — zadanie główne.
 - **Które pliki w tym katalogu są duplikatami?** — zadanie poboczne.
@@ -10,9 +13,9 @@ ImageWorker odpowiada na dwa pytania o katalog z plikami `png` i `jpg`:
 ## 1. Wskaż katalog
 
 **Obrazy** to katalog, w którym szukamy. **Indeks w** to miejsce, gdzie
-ImageWorker trzyma własne dane: bazę, podglądy i deskryptory.
+Argus trzyma własne dane: bazę, podglądy i deskryptory.
 
-Domyślnie indeks trafia do ukrytego katalogu `.imageworker` wewnątrz katalogu z
+Domyślnie indeks trafia do ukrytego katalogu `.argus` wewnątrz katalogu z
 obrazami. Zmień **Indeks w**, gdy obrazy leżą na zasobie sieciowym albo tylko do
 odczytu, gdy wolisz niczego nie dokładać do cudzego repozytorium, albo gdy
 indeksowi lepiej na szybszym dysku. **Domyślnie** przywraca poprzednie miejsce.
@@ -68,8 +71,8 @@ Jeśli **Znajdź obiekt** jest wyłączone, indeks nie ma jeszcze deskryptorów.
 Zbuduj je raz z wiersza poleceń:
 
 ```
-imageworker index "<katalog z obrazami>" --db "<katalog indeksu>\index.db" --features
-imageworker vocab "<katalog z obrazami>" --db "<katalog indeksu>\index.db"
+argus index "<katalog z obrazami>" --db "<katalog indeksu>\index.db" --features
+argus vocab "<katalog z obrazami>" --db "<katalog indeksu>\index.db"
 ```
 
 ---
@@ -127,7 +130,7 @@ pomijana w całości, a wewnątrz gałęzi ponownie czytane są tylko pliki, kt�
 zawartość naprawdę się zmieniła.
 
 > **Git LFS**: obrazy pochodzą z twojego lokalnego magazynu LFS. Jeśli gałąź
-> nigdy nie została pobrana, ImageWorker poda, ilu obiektów brakuje, i że
+> nigdy nie została pobrana, Argus poda, ilu obiektów brakuje, i że
 > `git lfs fetch --all` je sprowadzi — sam niczego nie pobiera.
 
 ---

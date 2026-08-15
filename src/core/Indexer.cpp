@@ -12,6 +12,7 @@
 #include "core/Scanner.h"
 
 #include <QBuffer>
+#include <QRect>
 #include <QDateTime>
 #include <QDir>
 #include <QElapsedTimer>
@@ -23,7 +24,84 @@
 #include <memory>
 #include <utility>
 
-namespace iw {
+namespace argus {
+
+namespace {
+
+/** @brief One piece of a picture, and where it sits in the whole. */
+struct Tile {
+    QRect rect;
+    int   index = 0;
+};
+
+/**
+ * @brief Cut a picture into pieces the extractor can describe in full detail.
+ * @param size    Picture size in its own pixels.
+ * @param window  Long side the extractor works at.
+ * @param overlap Fraction of a tile shared with its neighbour, 0..0.5.
+ * @return One tile covering everything when the picture already fits, otherwise
+ *         a grid of overlapping tiles.
+ *
+ * Anything larger than the window used to be downscaled to fit it, which spends
+ * the whole keypoint budget on the whole picture: a 3300x1320 background got
+ * 512 points over 4.4 megapixels, so a 200x228 region of it held about five.
+ * Five points cannot carry a homography, and the bag-of-words entry for the
+ * whole picture is dominated by the rest of it, so the region was unreachable
+ * twice over.
+ *
+ * Tiles fix both at once. Each tile is described at native resolution with a
+ * budget of its own, and each becomes its own shortlist document - a document
+ * the size of a query rather than of an atlas.
+ *
+ * They overlap because an object lying across a seam would otherwise be cut in
+ * half in every tile that contains it.
+ */
+QList<Tile> tilesFor(const QSize &size, int window, double overlap)
+{
+    QList<Tile> tiles;
+    if (size.isEmpty() || window <= 0) {
+        tiles.append({ QRect(QPoint(0, 0), size), 0 });
+        return tiles;
+    }
+
+    // A picture only a little larger than the window is left whole: cutting it
+    // would cost several extractions to recover detail it has not really lost.
+    if (size.width() <= window * 3 / 2 && size.height() <= window * 3 / 2) {
+        tiles.append({ QRect(QPoint(0, 0), size), 0 });
+        return tiles;
+    }
+
+    const int step = std::max(1, static_cast<int>(window * (1.0 - overlap)));
+    int index = 0;
+    for (int y = 0; y < size.height(); y += step) {
+        const int h = std::min(window, size.height() - y);
+        if (h <= 0)
+            break;
+        for (int x = 0; x < size.width(); x += step) {
+            const int w = std::min(window, size.width() - x);
+            if (w <= 0)
+                break;
+            // The last tile in a row or column is pulled back against the edge
+            // rather than left short, so no strip is ever described twice as
+            // thinly as the rest.
+            const int left = (w < window && size.width()  > window) ? size.width()  - window : x;
+            const int top  = (h < window && size.height() > window) ? size.height() - window : y;
+            tiles.append({ QRect(left, top,
+                                 std::min(window, size.width()  - left),
+                                 std::min(window, size.height() - top)), index++ });
+            if (w < window)
+                break;
+        }
+        if (h < window)
+            break;
+    }
+
+    if (tiles.isEmpty())
+        tiles.append({ QRect(QPoint(0, 0), size), 0 });
+    return tiles;
+}
+
+} // namespace
 
 Indexer::Indexer(QObject *parent)
     : QObject(parent)
@@ -386,41 +464,83 @@ void Indexer::extractFeaturePass(Database &db,
                 continue;
             }
 
+            const QList<Tile> tiles =
+                tilesFor(images[i].size(), options.featureMaxSide, options.tileOverlap);
+
+            // A picture may have been one record and become several, or the
+            // other way round after a settings change; the old rows would
+            // otherwise linger and be matched against.
+            if (tiles.size() > 1 || !options.force)
+                db.clearFeaturesFor(item.fileId);
+
             QString extractError;
-            const FeatureSet features =
-                extractor->extract(images[i], extractorOptions, &extractError);
-            if (features.isEmpty() && !extractError.isEmpty()) {
-                ++stats.featureFailed;
-                continue;
+            bool wrote = false;
+
+            for (const Tile &tile : tiles) {
+                const QImage piece = tiles.size() == 1 ? images[i]
+                                                       : images[i].copy(tile.rect);
+
+                const FeatureSet features =
+                    extractor->extract(piece, extractorOptions, &extractError);
+                if (features.isEmpty())
+                    continue; // a flat tile describes nothing; that is not a failure
+
+                FeatureLocation location;
+                if (!store.append(features, &location, &extractError)) {
+                    emit message(QStringLiteral("descriptor write failed for %1: %2")
+                                     .arg(item.rel, extractError));
+                    continue;
+                }
+
+                FeatureRecord record;
+                record.fileId      = item.fileId;
+                record.tile        = tile.index;
+                record.model       = modelId;
+                record.count       = location.count;
+                record.dim         = location.dim;
+                record.imageWidth  = features.imageWidth;
+                record.imageHeight = features.imageHeight;
+                record.offsetX     = tile.rect.x();
+                record.offsetY     = tile.rect.y();
+                record.descOffset  = location.descOffset;
+                record.kptsOffset  = location.kptsOffset;
+
+                if (!db.upsertFeatures(record, &extractError)) {
+                    emit message(QStringLiteral("feature index write failed for %1: %2")
+                                     .arg(item.rel, extractError));
+                    continue;
+                }
+
+                wrote = true;
+                stats.keypointsTotal += features.count();
+                if (tiles.size() > 1)
+                    ++stats.tiles;
             }
 
-            FeatureLocation location;
-            if (!store.append(features, &location, &extractError)) {
-                emit message(QStringLiteral("descriptor write failed for %1: %2")
-                                 .arg(item.rel, extractError));
-                ++stats.featureFailed;
+            if (!wrote) {
+                // A picture the extractor found nothing in is not a failure: a
+                // flat colour, a soft gradient and a tiny icon all genuinely
+                // have no local features. It still needs a row, or every later
+                // run would offer it again forever and the count of images
+                // "waiting for descriptors" would never reach zero.
+                FeatureRecord empty;
+                empty.fileId      = item.fileId;
+                empty.model       = modelId;
+                empty.imageWidth  = images[i].width();
+                empty.imageHeight = images[i].height();
+                empty.descOffset  = 0;
+                empty.kptsOffset  = 0;
+
+                if (db.upsertFeatures(empty, &extractError)) {
+                    ++stats.featured;
+                } else {
+                    emit message(QStringLiteral("feature index write failed for %1: %2")
+                                     .arg(item.rel, extractError));
+                    ++stats.featureFailed;
+                }
                 continue;
             }
-
-            FeatureRecord record;
-            record.fileId      = item.fileId;
-            record.model       = modelId;
-            record.count       = location.count;
-            record.dim         = location.dim;
-            record.imageWidth  = features.imageWidth;
-            record.imageHeight = features.imageHeight;
-            record.descOffset  = location.descOffset;
-            record.kptsOffset  = location.kptsOffset;
-
-            if (!db.upsertFeatures(record, &extractError)) {
-                emit message(QStringLiteral("feature index write failed for %1: %2")
-                                 .arg(item.rel, extractError));
-                ++stats.featureFailed;
-                continue;
-            }
-
             ++stats.featured;
-            stats.keypointsTotal += features.count();
         }
 
         db.commit(&writeError);
@@ -618,4 +738,4 @@ IndexStats Indexer::run(const IndexOptions &options, QString *error)
     return stats;
 }
 
-} // namespace iw
+} // namespace argus

@@ -6,13 +6,13 @@
 #include <numeric>
 #include <vector>
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 #include "core/OnnxProvider.h"
 #endif
 
-namespace iw {
+namespace argus {
 
-#ifdef IMAGEWORKER_WITH_INFERENCE
+#ifdef ARGUS_WITH_INFERENCE
 
 namespace {
 
@@ -37,7 +37,7 @@ std::string nativePath(const QString &path) { return path.toStdString(); }
 } // namespace
 
 struct FeatureExtractor::Impl {
-    Ort::Env                 env{ ORT_LOGGING_LEVEL_ERROR, "imageworker-features" };
+    Ort::Env                 env{ ORT_LOGGING_LEVEL_ERROR, "argus-features" };
     std::unique_ptr<Ort::Session> session;
     Ort::AllocatorWithDefaultOptions allocator;
 
@@ -259,7 +259,7 @@ FeatureSet FeatureExtractor::extract(const QImage &image,
     return out;
 }
 
-#else // IMAGEWORKER_WITH_INFERENCE
+#else // ARGUS_WITH_INFERENCE
 
 struct FeatureExtractor::Impl {};
 
@@ -276,7 +276,7 @@ std::unique_ptr<FeatureExtractor> FeatureExtractor::create(const QString &modelP
     Q_UNUSED(preferDirectML)
     if (error) {
         *error = QStringLiteral(
-            "built without inference support; reconfigure with -DIMAGEWORKER_WITH_INFERENCE=ON");
+            "built without inference support; reconfigure with -DARGUS_WITH_INFERENCE=ON");
     }
     return nullptr;
 }
@@ -292,6 +292,6 @@ FeatureSet FeatureExtractor::extract(const QImage &image,
     return {};
 }
 
-#endif // IMAGEWORKER_WITH_INFERENCE
+#endif // ARGUS_WITH_INFERENCE
 
-} // namespace iw
+} // namespace argus

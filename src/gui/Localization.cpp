@@ -54,7 +54,7 @@ QString g_active;
 /** @brief Resource path of a catalogue, whether or not it exists. */
 QString cataloguePath(const QString &code)
 {
-    return kCatalogueDir + QStringLiteral("/imageworker_") + code + QStringLiteral(".qm");
+    return kCatalogueDir + QStringLiteral("/argus_") + code + QStringLiteral(".qm");
 }
 
 /**

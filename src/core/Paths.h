@@ -1,6 +1,6 @@
 /**
  * @file Paths.h
- * @brief Root normalisation and the on-disk layout of ImageWorker state.
+ * @brief Root normalisation and the on-disk layout of Argus state.
  *
  * Every path stored in the database is relative to an indexed root, so that a
  * database produced on the Linux worker stays meaningful on a Windows or macOS
@@ -10,12 +10,12 @@
 
 #include <QString>
 
-namespace iw {
+namespace argus {
 
 /**
- * @brief Directory ImageWorker keeps its state in.
+ * @brief Directory Argus keeps its state in.
  * @param root Indexed root directory.
- * @return <tt>&lt;root&gt;/.imageworker</tt>, '/'-separated.
+ * @return <tt>&lt;root&gt;/.argus</tt>, '/'-separated.
  */
 QString stateDirFor(const QString &root);
 
@@ -70,4 +70,4 @@ QString defaultModelsDir();
  */
 bool revealInFileManager(const QString &absPath);
 
-} // namespace iw
+} // namespace argus

@@ -121,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent)
     bindFormWidgets();
     wireForm();
 
-    setWindowTitle(QStringLiteral("ImageWorker %1").arg(QLatin1String(IMAGEWORKER_VERSION)));
+    setWindowTitle(QStringLiteral("Argus %1").arg(QLatin1String(ARGUS_VERSION)));
 
     m_statusLabel = new QLabel(this);
     statusBar()->addWidget(m_statusLabel);
@@ -200,7 +200,7 @@ void MainWindow::wireForm()
 {
     // ---- top bar ------------------------------------------------------------
     connect(m_rootEdit, &QLineEdit::editingFinished, this, [this] {
-        m_root = iw::normalizeRoot(m_rootEdit->text());
+        m_root = argus::normalizeRoot(m_rootEdit->text());
         syncStorageField();
     });
     connect(ui->browseRootButton, &QPushButton::clicked, this, &MainWindow::chooseRoot);
@@ -312,16 +312,25 @@ void MainWindow::buildHelpMenu()
 
     help->addSeparator();
     help->addAction(tr("&About"), this, [this] {
-        QMessageBox::about(
-            this, tr("About ImageWorker"),
-            tr(
-                "<h3>ImageWorker %1</h3>"
-                "<p>Finds which image assets appear inside a screenshot, and where; "
-                "and groups duplicates in a folder.</p>"
-                "<p>Ships as two executables built from one core library: "
-                "<b>imageworker-gui</b> and the headless <b>imageworker</b>.</p>"
-                "<p>Press <b>F1</b> for the manual.</p>")
-                .arg(QLatin1String(IMAGEWORKER_VERSION)));
+        // Built by hand rather than through QMessageBox::about() so the icon is
+        // the product's own rather than the window's, at a size worth looking at.
+        QMessageBox about(this);
+        about.setWindowTitle(tr("About Argus"));
+        about.setIconPixmap(QPixmap(QStringLiteral(":/branding/argus-icon-256.png"))
+                                .scaled(96, 96, Qt::KeepAspectRatio,
+                                        Qt::SmoothTransformation));
+        about.setTextFormat(Qt::RichText);
+        about.setText(
+            tr("<h3>Argus %1</h3>"
+               "<p><i>Argus Panoptes, the hundred-eyed giant: half his eyes stayed "
+               "open while the rest slept, so nothing ever passed him unseen.</i></p>"
+               "<p>Finds which image assets appear inside a screenshot, and where; "
+               "and groups duplicates in a folder.</p>"
+               "<p>Ships as two executables built from one core library: "
+               "<b>argus-gui</b> and the headless <b>argus</b>.</p>"
+               "<p>Press <b>F1</b> for the manual.</p>")
+                .arg(QLatin1String(ARGUS_VERSION)));
+        about.exec();
     });
 }
 
@@ -401,7 +410,7 @@ void MainWindow::retranslateDynamic()
     // Everything the form file owns. This also puts the form's own window title
     // back, which is the bare product name — the version has to be re-applied.
     ui->retranslateUi(this);
-    setWindowTitle(QStringLiteral("ImageWorker %1").arg(QLatin1String(IMAGEWORKER_VERSION)));
+    setWindowTitle(QStringLiteral("Argus %1").arg(QLatin1String(ARGUS_VERSION)));
 
     // Everything built in code. The menu bar is thrown away and rebuilt; the
     // rest is set back item by item, because these widgets outlive the language.
@@ -532,7 +541,7 @@ QString MainWindow::automaticStorageDir() const
 {
     if (m_root.isEmpty())
         return {};
-    return iw::stateDirFor(m_root);
+    return argus::stateDirFor(m_root);
 }
 
 void MainWindow::syncStorageField()
@@ -569,7 +578,7 @@ void MainWindow::chooseStorage()
 
 void MainWindow::setRoot(const QString &root)
 {
-    m_root = iw::normalizeRoot(root);
+    m_root = argus::normalizeRoot(root);
     m_rootEdit->setText(m_root);
     syncStorageField();
     openDatabaseForRoot();
@@ -596,7 +605,7 @@ void MainWindow::refreshRepositoryState()
     m_repoCurrentRef.clear();
 
     if (!m_root.isEmpty() && QFileInfo(m_root).isDir()) {
-        const iw::git::RepoInfo repo = iw::git::inspect(m_root);
+        const argus::git::RepoInfo repo = argus::git::inspect(m_root);
         if (repo.isRepo) {
             m_repoTopLevel   = repo.topLevel;
             m_repoCurrentRef = repo.currentRef;
@@ -659,7 +668,7 @@ void MainWindow::openDatabaseForRoot()
     }
 
     QString error;
-    auto database = std::make_unique<iw::Database>();
+    auto database = std::make_unique<argus::Database>();
     if (!database->open(m_dbPath, &error)) {
         setStatus(tr("Cannot open index: %1").arg(error));
         return;
@@ -674,7 +683,7 @@ void MainWindow::openDatabaseForRoot()
 
     refreshMethodAvailability();
 
-    const iw::DatabaseSummary summary = m_database->summary();
+    const argus::DatabaseSummary summary = m_database->summary();
     setStatus(tr("%1 indexed files, %2%3")
                   .arg(summary.files)
                   .arg(humanBytes(summary.totalBytes))
@@ -692,7 +701,7 @@ void MainWindow::startIndexing()
     if (m_busy)
         return;
 
-    m_root = iw::normalizeRoot(m_rootEdit->text());
+    m_root = argus::normalizeRoot(m_rootEdit->text());
     if (m_root.isEmpty() || !QFileInfo(m_root).isDir()) {
         QMessageBox::warning(this, windowTitle(), tr("Choose an existing folder first."));
         return;
@@ -713,7 +722,7 @@ void MainWindow::startIndexing()
     }
     m_dbPath = currentDatabasePath();
 
-    iw::IndexOptions options;
+    argus::IndexOptions options;
     options.root   = m_root;
     options.dbPath = m_dbPath;
 
@@ -727,13 +736,13 @@ void MainWindow::startIndexing()
     // branch dropped there is dropped from the index too.
     options.branches     = m_branches;
     options.syncBranches = !m_repoTopLevel.isEmpty();
-    options.featureModelPath = iw::defaultModelsDir() + QStringLiteral("/disk.onnx");
+    options.featureModelPath = argus::defaultModelsDir() + QStringLiteral("/disk.onnx");
 
     setBusy(true, tr("Indexing"));
     m_indexController->start(options);
 }
 
-void MainWindow::onIndexFinished(const iw::IndexStats &stats, const QString &error)
+void MainWindow::onIndexFinished(const argus::IndexStats &stats, const QString &error)
 {
     setBusy(false);
     m_progress->setRange(0, 100);
@@ -783,7 +792,7 @@ void MainWindow::buildVocabulary()
 
     QThread *worker = QThread::create([this, dbPath] {
         QString error;
-        iw::Database db;
+        argus::Database db;
         if (!db.open(dbPath, &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
                 setBusy(false);
@@ -794,7 +803,7 @@ void MainWindow::buildVocabulary()
 
         const QString featureDir =
             QFileInfo(dbPath).absolutePath() + QStringLiteral("/features");
-        iw::DescriptorStore store;
+        argus::DescriptorStore store;
         if (!store.open(featureDir, &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
                 setBusy(false);
@@ -804,28 +813,28 @@ void MainWindow::buildVocabulary()
         }
 
         const QString model = QStringLiteral("disk");
-        const QList<iw::FeatureRecord> records = db.allFeatures(model);
+        const QList<argus::FeatureRecord> records = db.allFeatures(model);
 
         // Sample evenly across the whole library so the vocabulary is not
         // dominated by whichever folder happened to be indexed first.
         qint64 total = 0;
-        for (const iw::FeatureRecord &r : records)
+        for (const argus::FeatureRecord &r : records)
             total += r.count;
-        iw::VocabularyOptions vocabOptions;
+        argus::VocabularyOptions vocabOptions;
         const int stride = std::max<qint64>(
             1, total / std::max(1, vocabOptions.sampleDescriptors));
 
         QList<float> sample;
         int dim = 0;
         qint64 seen = 0;
-        for (const iw::FeatureRecord &record : records) {
-            iw::FeatureLocation location;
+        for (const argus::FeatureRecord &record : records) {
+            argus::FeatureLocation location;
             location.descOffset = record.descOffset;
             location.kptsOffset = record.kptsOffset;
             location.count      = record.count;
             location.dim        = record.dim;
 
-            const iw::FeatureSet features =
+            const argus::FeatureSet features =
                 store.load(location, record.imageWidth, record.imageHeight);
             if (features.isEmpty())
                 continue;
@@ -846,7 +855,7 @@ void MainWindow::buildVocabulary()
             return;
         }
 
-        auto vocabulary = iw::Vocabulary::train(sample, dim, model, vocabOptions, &error);
+        auto vocabulary = argus::Vocabulary::train(sample, dim, model, vocabOptions, &error);
         if (!vocabulary
             || !vocabulary->save(featureDir + QStringLiteral("/vocab.bin"), &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
@@ -856,7 +865,7 @@ void MainWindow::buildVocabulary()
             return;
         }
 
-        auto index = iw::BowIndex::build(db, store, *vocabulary, model, &m_taskCancel,
+        auto index = argus::BowIndex::build(db, store, *vocabulary, model, &m_taskCancel,
                                          {}, &error);
         if (!index || !index->save(featureDir + QStringLiteral("/bow.bin"), &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
@@ -866,7 +875,7 @@ void MainWindow::buildVocabulary()
             return;
         }
 
-        const iw::BowStats stats = index->stats();
+        const argus::BowStats stats = index->stats();
         QMetaObject::invokeMethod(this, [this, stats] {
             setBusy(false);
             m_progress->setRange(0, 100);
@@ -903,7 +912,7 @@ void MainWindow::findDuplicates()
         return;
     }
 
-    iw::DuplicateOptions options;
+    argus::DuplicateOptions options;
     options.maxDistance  = m_distanceSpin->value();
     options.includeExact = m_exactCheck->isChecked();
     options.includeNear  = m_nearCheck->isChecked();
@@ -915,7 +924,7 @@ void MainWindow::findDuplicates()
 
     // A second read-only connection: WAL lets it run alongside the UI's own.
     QThread *worker = QThread::create([this, dbPath, options] {
-        iw::Database db;
+        argus::Database db;
         QString error;
         if (!db.open(dbPath, &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
@@ -925,8 +934,8 @@ void MainWindow::findDuplicates()
             return;
         }
 
-        const iw::DuplicateReport report =
-            iw::findDuplicates(db, options, &m_taskCancel,
+        const argus::DuplicateReport report =
+            argus::findDuplicates(db, options, &m_taskCancel,
                                [this](int done, int total, const QString &stage) {
                                    QMetaObject::invokeMethod(this, [this, done, total, stage] {
                                        if (total > 0) {
@@ -944,7 +953,7 @@ void MainWindow::findDuplicates()
     worker->start();
 }
 
-void MainWindow::onDuplicatesReady(const iw::DuplicateReport &report)
+void MainWindow::onDuplicatesReady(const argus::DuplicateReport &report)
 {
     setBusy(false);
     m_progress->setRange(0, 100);
@@ -955,11 +964,11 @@ void MainWindow::onDuplicatesReady(const iw::DuplicateReport &report)
     m_groupModel->clear();
 
     int number = 0;
-    for (const iw::DuplicateGroup &group : std::as_const(m_groups)) {
+    for (const argus::DuplicateGroup &group : std::as_const(m_groups)) {
         ++number;
         m_groupList->addItem(tr("#%1  %2  %3 files  %4")
                                  .arg(number)
-                                 .arg(group.kind == iw::GroupKind::Exact
+                                 .arg(group.kind == argus::GroupKind::Exact
                                           ? tr("exact")
                                           : tr("near d≤%1").arg(group.maxDistance))
                                  .arg(group.files.size())
@@ -1081,8 +1090,8 @@ void MainWindow::refreshMethodAvailability()
             if (!available) {
                 item->setData(tr(
                                   "This index has no descriptors or vocabulary yet. Build them with:\n"
-                                  "  imageworker index <dir> --db <db> --features\n"
-                                  "  imageworker vocab <dir> --db <db>"),
+                                  "  argus index <dir> --db <db> --features\n"
+                                  "  argus vocab <dir> --db <db>"),
                               Qt::ToolTipRole);
             }
         }
@@ -1119,8 +1128,8 @@ void MainWindow::runQuery()
             tr(
                 "This index has no local-feature descriptors yet, so an object cannot be "
                 "located inside an image.\n\nBuild them first:\n\n"
-                "  imageworker index \"%1\" --db \"%2\" --features\n"
-                "  imageworker vocab \"%1\" --db \"%2\"")
+                "  argus index \"%1\" --db \"%2\" --features\n"
+                "  argus vocab \"%1\" --db \"%2\"")
                 .arg(QDir::toNativeSeparators(m_root), QDir::toNativeSeparators(m_dbPath)));
         return;
     }
@@ -1139,7 +1148,7 @@ void MainWindow::runQuery()
 
     // ---- neural: locate the asset inside the image --------------------------
     if (m_methodCombo->currentIndex() == 0) {
-        iw::FindOptions findOptions;
+        argus::FindOptions findOptions;
         findOptions.topK = m_topSpin->value();
 
         // Measured on a 1280x720 screenshot holding one known asset:
@@ -1166,10 +1175,10 @@ void MainWindow::runQuery()
         QThread *finderWorker = QThread::create([this, dbPath, reference, findOptions, finderKey] {
             QString error;
             if (!m_finder || m_finderKey != finderKey) {
-                m_finder = iw::ObjectFinder::create(dbPath, findOptions, &error);
+                m_finder = argus::ObjectFinder::create(dbPath, findOptions, &error);
                 m_finderKey = m_finder ? finderKey : QString();
             }
-            iw::ObjectFinder *finder = m_finder.get();
+            argus::ObjectFinder *finder = m_finder.get();
             if (!finder) {
                 QMetaObject::invokeMethod(this, [this, error] {
                     setBusy(false);
@@ -1179,7 +1188,7 @@ void MainWindow::runQuery()
                 return;
             }
 
-            const QList<iw::FindResult> results =
+            const QList<argus::FindResult> results =
                 finder->find(reference, findOptions, &m_taskCancel,
                              [this](int done, int total) {
                                  QMetaObject::invokeMethod(this, [this, done, total] {
@@ -1200,7 +1209,7 @@ void MainWindow::runQuery()
     }
 
     // ---- perceptual hash: whole-image similarity ----------------------------
-    iw::QueryOptions options;
+    argus::QueryOptions options;
     options.topK        = m_topSpin->value();
     options.maxDistance = m_maxDistSpin->value();
 
@@ -1218,7 +1227,7 @@ void MainWindow::runQuery()
     m_progress->setRange(0, 0);
 
     QThread *worker = QThread::create([this, dbPath, reference, referencePath, options] {
-        iw::Database db;
+        argus::Database db;
         QString error;
         if (!db.open(dbPath, &error)) {
             QMetaObject::invokeMethod(this, [this, error] {
@@ -1229,10 +1238,10 @@ void MainWindow::runQuery()
         }
 
         QString queryError;
-        const iw::QueryResult result =
+        const argus::QueryResult result =
             referencePath.isEmpty()
-                ? iw::queryByImage(db, reference, options, &queryError)
-                : iw::queryByImage(db, referencePath, options, &queryError);
+                ? argus::queryByImage(db, reference, options, &queryError)
+                : argus::queryByImage(db, referencePath, options, &queryError);
         QMetaObject::invokeMethod(this, [this, result, queryError] {
             if (!queryError.isEmpty()) {
                 setBusy(false);
@@ -1246,7 +1255,7 @@ void MainWindow::runQuery()
     worker->start();
 }
 
-void MainWindow::onQueryReady(const iw::QueryResult &result)
+void MainWindow::onQueryReady(const argus::QueryResult &result)
 {
     setBusy(false);
     m_progress->setRange(0, 100);
@@ -1276,16 +1285,16 @@ void MainWindow::onQueryReady(const iw::QueryResult &result)
     m_tabs->setCurrentIndex(1);
 }
 
-void MainWindow::onFindReady(const QList<iw::FindResult> &results)
+void MainWindow::onFindReady(const QList<argus::FindResult> &results)
 {
     setBusy(false);
     m_progress->setRange(0, 100);
     m_progress->setValue(100);
 
-    QList<iw::Match> asMatches;
+    QList<argus::Match> asMatches;
     asMatches.reserve(results.size());
-    for (const iw::FindResult &r : results) {
-        iw::Match m;
+    for (const argus::FindResult &r : results) {
+        argus::Match m;
         m.file     = r.file;
         m.score    = r.score;
         m.distance = r.inliers; // the grid subtitle shows it as the evidence count
@@ -1303,7 +1312,7 @@ void MainWindow::onFindReady(const QList<iw::FindResult> &results)
 
     // Show where the best result sits. The outline is in the coordinates of the
     // image that was searched, which is the crop when the user boxed one.
-    const iw::FindResult &best = results.first();
+    const argus::FindResult &best = results.first();
     QPolygonF outline = best.outline;
     if (m_queryImage->hasSelection()) {
         const QPointF origin = m_queryImage->selectionOrigin();
@@ -1353,13 +1362,13 @@ void MainWindow::findDuplicatesOf(const QString &absolutePath)
     runQuery();
 }
 
-void MainWindow::openRow(const iw::FileInfoRow &row)
+void MainWindow::openRow(const argus::FileInfoRow &row)
 {
     if (row.rel.isEmpty())
         return;
 
     if (row.ref.isEmpty()) {
-        QDesktopServices::openUrl(QUrl::fromLocalFile(iw::absolutePathFor(m_root, row.rel)));
+        QDesktopServices::openUrl(QUrl::fromLocalFile(argus::absolutePathFor(m_root, row.rel)));
         return;
     }
 
@@ -1369,7 +1378,7 @@ void MainWindow::openRow(const iw::FileInfoRow &row)
         return;
     }
 
-    iw::git::BlobReader reader(m_repoTopLevel);
+    argus::git::BlobReader reader(m_repoTopLevel);
     QString error;
     const QByteArray data = reader.isReady() ? reader.read(row.blob, &error) : QByteArray();
     if (data.isEmpty()) {
@@ -1422,8 +1431,8 @@ void MainWindow::showResultMenu(const QPoint &position)
     auto *model = qobject_cast<const ResultModel *>(index.model());
     if (!model)
         return;
-    const iw::FileInfoRow row = model->rowAt(index);
-    const QString absolute = iw::absolutePathFor(m_root, row.rel);
+    const argus::FileInfoRow row = model->rowAt(index);
+    const QString absolute = argus::absolutePathFor(m_root, row.rel);
     const bool onDisk = row.ref.isEmpty();
 
     QMenu menu(this);
@@ -1433,7 +1442,7 @@ void MainWindow::showResultMenu(const QPoint &position)
     // action that opens a file manager on a path that is not there is worse
     // than an action that is plainly unavailable.
     QAction *reveal = menu.addAction(tr("Reveal in file manager"), this, [absolute] {
-        iw::revealInFileManager(absolute);
+        argus::revealInFileManager(absolute);
     });
     reveal->setEnabled(onDisk);
 

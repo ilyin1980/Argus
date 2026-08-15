@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#  Build ImageWorker on Linux or macOS.
+#  Build Argus on Linux or macOS.
 #
 #    tools/build.sh                configure and build, release, with inference
 #    tools/build.sh debug          debug build
@@ -14,7 +14,7 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEPS="$HOME/imageworker-deps"
+DEPS="$HOME/argus-deps"
 
 BUILD_TYPE=RelWithDebInfo
 INFERENCE=ON
@@ -71,14 +71,14 @@ echo
 CMAKE_ARGS=(
     -S "$ROOT" -B "$BUILD" -G Ninja
     -DCMAKE_BUILD_TYPE="$BUILD_TYPE"
-    -DIMAGEWORKER_WITH_INFERENCE="$INFERENCE"
+    -DARGUS_WITH_INFERENCE="$INFERENCE"
 )
 [ -n "${QT_PREFIX:-}" ] && CMAKE_ARGS+=(-DCMAKE_PREFIX_PATH="$QT_PREFIX")
 if [ "$INFERENCE" = ON ]; then
-    CMAKE_ARGS+=(-DIMAGEWORKER_ORT_ROOT="$ORT_ROOT")
+    CMAKE_ARGS+=(-DARGUS_ORT_ROOT="$ORT_ROOT")
     # Windows vendors a prebuilt OpenCV; here the system package is the right
     # one, and pointing the variable at nothing makes CMake fall back to it.
-    CMAKE_ARGS+=(-DIMAGEWORKER_OPENCV_DIR="/nonexistent-use-system-opencv")
+    CMAKE_ARGS+=(-DARGUS_OPENCV_DIR="/nonexistent-use-system-opencv")
 fi
 
 cmake "${CMAKE_ARGS[@]}" || exit 1

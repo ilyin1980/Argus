@@ -4,7 +4,7 @@
  *
  * Both hashes survive rescaling and re-encoding, but they fail in different
  * ways — the DCT hash is weak on flat images, the gradient hash on smooth
- * gradients — so ImageWorker stores and compares both.
+ * gradients — so Argus stores and compares both.
  */
 #pragma once
 
@@ -12,7 +12,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 /**
  * @brief DCT-based perceptual hash, the classic pHash.
@@ -35,4 +35,4 @@ quint64 dctPerceptualHash(const QImage &gray32);
  */
 quint64 differenceHash(const QImage &gray9x8);
 
-} // namespace iw
+} // namespace argus

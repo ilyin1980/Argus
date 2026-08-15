@@ -13,7 +13,7 @@
 #include <QString>
 #include <QStringList>
 
-namespace iw {
+namespace argus {
 
 /** @brief What a caller wants out of one decode. */
 struct DecodeRequest {
@@ -102,4 +102,4 @@ QStringList supportedExtensions();
  */
 QByteArray encodeThumbnail(const QImage &image, int maxSide, int quality);
 
-} // namespace iw
+} // namespace argus

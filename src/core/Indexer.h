@@ -10,7 +10,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 class Database;
 
@@ -99,4 +99,4 @@ private:
     std::atomic_bool m_cancel{false};
 };
 
-} // namespace iw
+} // namespace argus

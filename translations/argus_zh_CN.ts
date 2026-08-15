@@ -1,47 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="uk">
+<TS version="2.1" language="zh_CN">
 <context>
     <name>BranchDialog</name>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="21" />
         <source>Branches to index</source>
-        <translation>Гілки для індексації</translation>
+        <translation>要索引的分支</translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="27" />
         <source>Files are read straight out of the repository, so nothing is checked out and the working tree is never touched. The branch you have checked out is not listed: it is the working tree, which the index already covers.</source>
-        <translation>Файли читаються прямо з репозиторію, тож нічого не викачується, а робоче дерево лишається недоторканим. Гілка, на яку ви перемкнені, у списку відсутня: це і є робоче дерево, яке індекс уже охоплює.</translation>
+        <translation>文件直接从仓库中读取，因此不会检出任何内容，工作区也不会被改动。你当前检出的分支不会出现在列表里：它就是工作区，索引已经涵盖了。</translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="39" />
         <source>Include remote-tracking branches</source>
-        <translation>Показувати також віддалені гілки</translation>
+        <translation>包含远程跟踪分支</translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="50" />
         <source>Select none</source>
-        <translation>Зняти всі</translation>
+        <translation>全部取消</translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="87" />
         <source>This repository has no branches.</source>
-        <translation>У цьому репозиторії немає гілок.</translation>
+        <translation>该仓库没有分支。</translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="88" />
         <source>Cannot list branches: %1</source>
-        <translation>Не вдалося отримати список гілок: %1</translation>
+        <translation>无法列出分支：%1</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/gui/BranchDialog.cpp" line="100" />
         <source>%n branch(es) available.</source>
-        <translation><numerusform>Доступна %n гілка.</numerusform><numerusform>Доступні %n гілки.</numerusform><numerusform>Доступно %n гілок.</numerusform></translation>
+        <translation><numerusform>共有 %n 个分支可选。</numerusform></translation>
     </message>
     <message>
         <location filename="../src/gui/BranchDialog.cpp" line="103" />
         <source>Indexed earlier but gone from the repository: %1. Pressing OK drops them from the index.</source>
-        <translation>Індексувалися раніше, але зникли з репозиторію: %1. Натискання «OK» вилучить їх з індексу.</translation>
+        <translation>之前索引过但已从仓库中消失：%1。点击“确定”会将它们从索引中移除。</translation>
     </message>
 </context>
 <context>
@@ -49,123 +49,121 @@
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="18" />
         <location filename="../src/gui/HelpDialog.cpp" line="85" />
-        <source>ImageWorker — Help</source>
-        <translation>ImageWorker — Довідка</translation>
+        <source>Argus — Help</source>
+        <translation>Argus — 帮助</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="57" />
-        <source>Using ImageWorker</source>
-        <translation>Як користуватися</translation>
+        <source>Using Argus</source>
+        <translation>使用说明</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="58" />
         <source>Command line</source>
-        <translation>Командний рядок</translation>
+        <translation>命令行</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="75" />
         <source>Could not load %1.</source>
-        <translation>Не вдалося завантажити %1.</translation>
+        <translation>无法加载 %1。</translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="14" />
-        <source>ImageWorker</source>
-        <translation>ImageWorker</translation>
+        <source>Argus</source>
+        <translation>Argus</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="54" />
         <source>Images:</source>
-        <translation>Картинки:</translation>
+        <translation>图片：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="61" />
         <source>Directory with png / jpg files</source>
-        <translation>Папка з файлами png / jpg</translation>
+        <translation>存放 png / jpg 文件的目录</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="68" />
         <location filename="../src/gui/MainWindow.ui" line="115" />
         <location filename="../src/gui/MainWindow.ui" line="301" />
         <source>Browse…</source>
-        <translation>Огляд…</translation>
+        <translation>浏览…</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="75" />
         <source>&amp;Index</source>
-        <translation>&amp;Індексувати</translation>
+        <translation>建立索引(&amp;I)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="91" />
         <source>Cancel</source>
-        <translation>Скасувати</translation>
+        <translation>取消</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="98" />
         <source>Index in:</source>
-        <translation>Індекс у:</translation>
+        <translation>索引位置：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="105" />
         <source>Directory holding the index database, previews and descriptors.
-Defaults to .imageworker inside the image folder; point it elsewhere to
+Defaults to .argus inside the image folder; point it elsewhere to
 keep a read-only or network share untouched, or to put the index on a
 faster disk.</source>
-        <translation>Папка з базою індексу, прев'ю та дескрипторами.
-Типово це .imageworker усередині папки з картинками; вкажіть іншу,
-щоб не чіпати мережевий або доступний лише для читання ресурс,
-або щоб покласти індекс на швидший диск.</translation>
+        <translation>存放索引数据库、预览图和描述子的目录。
+默认是图片目录内的 .argus；如果不想改动只读目录或网络共享，
+或者想把索引放到更快的磁盘上，可以另选一个位置。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="122" />
         <source>Put the index back inside the image folder.</source>
-        <translation>Повернути індекс усередину папки з картинками.</translation>
+        <translation>把索引放回图片目录内。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="125" />
         <source>Default</source>
-        <translation>Типово</translation>
+        <translation>默认</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="132" />
-        <source>Also build the neural descriptors that let ImageWorker locate an
+        <source>Also build the neural descriptors that let Argus locate an
 asset inside a screenshot. Roughly doubles indexing time and adds
 about 40 KB per image; without them only duplicate detection and
 whole-image similarity work.</source>
-        <translation>Додатково побудувати нейронні дескриптори, які дають змогу знайти
-асет усередині скріншота. Приблизно подвоює час індексації й додає
-близько 40 КБ на картинку; без них працює лише пошук дублікатів
-та схожість зображення в цілому.</translation>
+        <translation>同时生成神经网络描述子，用于在截图中定位素材。
+索引时间大约翻倍，每张图片多占约 40 KB；没有它们时
+只能使用重复图片检测和整图相似度。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="138" />
         <source>Object search data</source>
-        <translation>Дані для пошуку об'єктів</translation>
+        <translation>对象搜索数据</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="151" />
         <source>Pick which git branches to index alongside the working tree.
 Enabled only when the image folder is inside a git repository.</source>
-        <translation>Виберіть, які гілки git індексувати разом із робочим деревом.
-Доступно лише тоді, коли папка з картинками лежить у репозиторії git.</translation>
+        <translation>选择在工作区之外还要索引哪些 git 分支。
+仅当图片目录位于 git 仓库中时可用。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="155" />
         <source>Branches…</source>
-        <translation>Гілки…</translation>
+        <translation>分支…</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="182" />
         <source>Duplicates</source>
-        <translation>Дублікати</translation>
+        <translation>重复图片</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="190" />
         <location filename="../src/gui/MainWindow.ui" line="359" />
         <source>Max distance:</source>
-        <translation>Макс. відстань:</translation>
+        <translation>最大距离：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="197" />
@@ -173,58 +171,57 @@ Enabled only when the image folder is inside a git repository.</source>
 0 = identical fingerprints, 4 = tolerant of re-encoding and rescaling.
 Above 8 the results are for review, not for deletion: perceptual hashing
 describes layout, so one character with several expressions groups together.</source>
-        <translation>Радіус Геммінга для 64-бітного перцептивного хеша.
-0 = однакові відбитки, 4 = терпимо до перекодування й масштабування.
-Понад 8 результати придатні для перегляду, а не для видалення: перцептивний
-хеш описує композицію, тож один персонаж із різними виразами обличчя
-потрапить в одну групу.</translation>
+        <translation>64 位感知哈希的汉明半径。
+0 = 指纹完全相同，4 = 可容忍重新编码和缩放。
+超过 8 时结果只适合人工复核，不适合直接删除：感知哈希描述的是构图，
+因此同一角色的多种表情会被归为一组。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="213" />
         <source>Exact</source>
-        <translation>Точні</translation>
+        <translation>完全相同</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="223" />
         <source>Near</source>
-        <translation>Близькі</translation>
+        <translation>相近</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="233" />
         <source>&amp;Find duplicates</source>
-        <translation>&amp;Знайти дублікати</translation>
+        <translation>查找重复(&amp;F)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="272" />
         <source>Find by example</source>
-        <translation>Пошук за зразком</translation>
+        <translation>按样例查找</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="294" />
         <source>Reference image, drop one, or paste with Ctrl+V</source>
-        <translation>Зразок: вкажіть файл, перетягніть його або вставте через Ctrl+V</translation>
+        <translation>参考图片：选择文件、拖入，或用 Ctrl+V 粘贴</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="308" />
         <source>Paste</source>
-        <translation>Вставити</translation>
+        <translation>粘贴</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="317" />
         <location filename="../src/gui/MainWindow.cpp" line="428" />
         <location filename="../src/gui/MainWindow.cpp" line="1029" />
         <source>No reference image yet.</source>
-        <translation>Зразка ще немає.</translation>
+        <translation>尚未选择参考图片。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="329" />
         <source>Method:</source>
-        <translation>Метод:</translation>
+        <translation>方式：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="339" />
         <source>Top:</source>
-        <translation>Найкращих:</translation>
+        <translation>最多：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="366" />
@@ -232,75 +229,75 @@ describes layout, so one character with several expressions groups together.</so
 Perceptual hashing finds the same picture, not merely a similar subject.
 Below about 16 the hits are the same picture re-encoded or rescaled.
 Above 30 they are effectively random, whatever the score suggests.</source>
-        <translation>Сумарна відстань pHash + dHash, 0..128.
-Перцептивний хеш знаходить ту саму картинку, а не просто схожий сюжет.
-Приблизно до 16 збіги — це та сама картинка, перекодована чи змасштабована.
-Понад 30 вони фактично випадкові, хоч би що показувала оцінка.</translation>
+        <translation>pHash + dHash 的合并距离，0..128。
+感知哈希找的是同一张图片，而不只是题材相近的图片。
+大约 16 以下的结果是同一张图片，只是重新编码或缩放过。
+超过 30 基本就是随机结果，无论分数看起来多高。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="382" />
         <source>&amp;Search</source>
-        <translation>&amp;Шукати</translation>
+        <translation>搜索(&amp;S)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="430" />
         <source>Path:</source>
-        <translation>Шлях:</translation>
+        <translation>路径：</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="440" />
         <source>Select a result to see its full path</source>
-        <translation>Виберіть результат, щоб побачити повний шлях</translation>
+        <translation>选择一个结果以查看其完整路径</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="457" />
         <source>Copy the full path of every selected result, one per line.</source>
-        <translation>Скопіювати повний шлях кожного вибраного результату, по одному в рядку.</translation>
+        <translation>复制所选每个结果的完整路径，每行一个。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="460" />
         <source>&amp;Copy</source>
-        <translation>&amp;Копіювати</translation>
+        <translation>复制(&amp;C)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="128" />
         <location filename="../src/gui/MainWindow.cpp" line="645" />
         <source>Choose a folder to begin.</source>
-        <translation>Виберіть папку, щоб почати.</translation>
+        <translation>请选择一个目录以开始。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="133" />
         <source>Paste screenshot</source>
-        <translation>Вставити скріншот</translation>
+        <translation>粘贴截图</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="234" />
         <location filename="../src/gui/MainWindow.cpp" line="430" />
         <source>Searching the whole image. Drag a box to search for one object.</source>
-        <translation>Пошук по всій картинці. Виділіть рамкою, щоб шукати один об'єкт.</translation>
+        <translation>正在搜索整张图片。拖出一个框可只搜索其中一个对象。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="239" />
         <source>Searching the selected %1 x %2 region — faster and more accurate than the whole frame.</source>
-        <translation>Пошук у виділеній ділянці %1 x %2 — швидше й точніше, ніж по всьому кадру.</translation>
+        <translation>正在搜索所选的 %1 x %2 区域 —— 比整幅画面更快也更准确。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="249" />
         <location filename="../src/gui/MainWindow.cpp" line="410" />
         <source>Paste a screenshot from the clipboard (Ctrl+V)</source>
-        <translation>Вставити скріншот із буфера обміну (Ctrl+V)</translation>
+        <translation>从剪贴板粘贴截图（Ctrl+V）</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="253" />
         <location filename="../src/gui/MainWindow.cpp" line="412" />
         <source>Locate object in the image</source>
-        <translation>Знайти об'єкт на картинці</translation>
+        <translation>在图片中定位对象</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="254" />
         <location filename="../src/gui/MainWindow.cpp" line="413" />
         <source>Whole-image similarity</source>
-        <translation>Схожість зображення в цілому</translation>
+        <translation>整图相似度</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="257" />
@@ -308,9 +305,9 @@ Above 30 they are effectively random, whatever the score suggests.</source>
         <source>Neural local features: finds an asset that is physically present in the
 image, even small, rescaled or surrounded by clutter, and shows where.
 Needs an index built with descriptors and a trained vocabulary.</source>
-        <translation>Нейронні локальні ознаки: знаходять асет, фізично присутній на
-картинці, навіть дрібний, змасштабований чи серед мішанини, і показують де.
-Потрібен індекс із дескрипторами та натренованим словником.</translation>
+        <translation>神经网络局部特征：能找出真实出现在图片中的素材，
+即使很小、被缩放或淹没在杂乱背景中，并指出具体位置。
+需要包含描述子并已训练视觉词典的索引。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="263" />
@@ -318,296 +315,290 @@ Needs an index built with descriptors and a trained vocabulary.</source>
         <source>Perceptual hash: compares the picture as a whole.
 Good for rescaled or re-encoded copies of the same picture,
 useless for finding a small object inside a screenshot.</source>
-        <translation>Перцептивний хеш: порівнює картинку цілком.
-Добре знаходить змасштабовані чи перекодовані копії тієї самої картинки,
-марний для пошуку дрібного об'єкта всередині скріншота.</translation>
+        <translation>感知哈希：把图片作为整体来比较。
+适合找同一张图片被缩放或重新编码后的副本，
+无法在截图中找出其中的小对象。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="294" />
         <source>&amp;View</source>
-        <translation>&amp;Вигляд</translation>
+        <translation>视图(&amp;V)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="295" />
         <source>&amp;Theme</source>
-        <translation>&amp;Тема</translation>
+        <translation>主题(&amp;T)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="296" />
         <source>&amp;Language</source>
-        <translation>&amp;Мова</translation>
+        <translation>语言(&amp;L)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="302" />
         <source>&amp;Help</source>
-        <translation>&amp;Довідка</translation>
+        <translation>帮助(&amp;H)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="304" />
         <source>&amp;User guide</source>
-        <translation>&amp;Посібник користувача</translation>
+        <translation>使用手册(&amp;U)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="309" />
         <source>&amp;Command line and automation</source>
-        <translation>&amp;Командний рядок і автоматизація</translation>
+        <translation>命令行与自动化(&amp;C)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="314" />
         <source>&amp;About</source>
-        <translation>&amp;Про програму</translation>
+        <translation>关于(&amp;A)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="316" />
-        <source>About ImageWorker</source>
-        <translation>Про ImageWorker</translation>
+        <source>About Argus</source>
+        <translation>关于 Argus</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="317" />
-        <source>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;imageworker-gui&lt;/b&gt; and the headless &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;Знаходить, які асети присутні на скріншоті й де саме; а також групує дублікати в папці.&lt;/p&gt;&lt;p&gt;Постачається як два виконуваних файли, зібрані з однієї бібліотеки: &lt;b&gt;imageworker-gui&lt;/b&gt; та консольний &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Натисніть &lt;b&gt;F1&lt;/b&gt;, щоб відкрити посібник.&lt;/p&gt;</translation>
+        <source>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;argus-gui&lt;/b&gt; and the headless &lt;b&gt;argus&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;找出截图中出现了哪些图片素材以及它们的位置；并把目录中的重复图片分组。&lt;/p&gt;&lt;p&gt;由同一个核心库构建出两个可执行文件：&lt;b&gt;argus-gui&lt;/b&gt; 和命令行版 &lt;b&gt;argus&lt;/b&gt;。&lt;/p&gt;&lt;p&gt;按 &lt;b&gt;F1&lt;/b&gt; 打开手册。&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="358" />
         <source>Theme: %1</source>
-        <translation>Тема: %1</translation>
+        <translation>主题：%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="377" />
         <source>System language</source>
-        <translation>Мова системи</translation>
+        <translation>跟随系统语言</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="388" />
         <source>No translation for %1 in this build.</source>
-        <translation>У цій збірці немає перекладу для %1.</translation>
+        <translation>此版本不包含 %1 的翻译。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="391" />
         <source>Language: %1</source>
-        <translation>Мова: %1</translation>
+        <translation>语言：%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="471" />
         <source>Copied %1</source>
-        <translation>Скопійовано %1</translation>
+        <translation>已复制 %1</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/gui/MainWindow.cpp" line="501" />
         <source>+%n more</source>
         <translation>
-            <numerusform>+ще %n</numerusform>
-            <numerusform>+ще %n</numerusform>
-            <numerusform>+ще %n</numerusform>
+            <numerusform>另有 %n 个</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../src/gui/MainWindow.cpp" line="527" />
         <source>Copied %n full path(s) to the clipboard.</source>
         <translation>
-            <numerusform>Скопійовано %n повний шлях до буфера обміну.</numerusform>
-            <numerusform>Скопійовано %n повні шляхи до буфера обміну.</numerusform>
-            <numerusform>Скопійовано %n повних шляхів до буфера обміну.</numerusform>
+            <numerusform>已将 %n 条完整路径复制到剪贴板。</numerusform>
         </translation>
     </message>
     <message numerus="yes">
         <location filename="../src/gui/MainWindow.cpp" line="528" />
         <source>Copied %n relative path(s) to the clipboard.</source>
         <translation>
-            <numerusform>Скопійовано %n відносний шлях до буфера обміну.</numerusform>
-            <numerusform>Скопійовано %n відносні шляхи до буфера обміну.</numerusform>
-            <numerusform>Скопійовано %n відносних шляхів до буфера обміну.</numerusform>
+            <numerusform>已将 %n 条相对路径复制到剪贴板。</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="557" />
         <source>Choose where to keep the index</source>
-        <translation>Виберіть, де зберігати індекс</translation>
+        <translation>选择索引的存放位置</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="588" />
         <source>Choose a folder</source>
-        <translation>Виберіть папку</translation>
+        <translation>选择目录</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="651" />
         <source>Choose where the index should be kept.</source>
-        <translation>Виберіть, де зберігати індекс.</translation>
+        <translation>请选择索引的存放位置。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="656" />
         <source>No index at %1 — press Index to build one.</source>
-        <translation>За шляхом %1 індексу немає — натисніть «Індексувати», щоб його побудувати.</translation>
+        <translation>%1 中没有索引 —— 点击“建立索引”来创建。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="664" />
         <source>Cannot open index: %1</source>
-        <translation>Не вдалося відкрити індекс: %1</translation>
+        <translation>无法打开索引：%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="678" />
         <source>%1 indexed files, %2%3</source>
-        <translation>%1 проіндексованих файлів, %2%3</translation>
+        <translation>已索引 %1 个文件，%2%3</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="683" />
         <source> — no descriptors, object location unavailable</source>
-        <translation> — дескрипторів немає, пошук об'єктів недоступний</translation>
+        <translation> —— 没有描述子，无法定位对象</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="697" />
         <source>Choose an existing folder first.</source>
-        <translation>Спершу виберіть наявну папку.</translation>
+        <translation>请先选择一个已存在的目录。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="710" />
         <source>Cannot create the index directory:
 %1</source>
-        <translation>Не вдалося створити папку індексу:
+        <translation>无法创建索引目录：
 %1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="732" />
         <source>Indexing</source>
-        <translation>Індексація</translation>
+        <translation>建立索引</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="769" />
         <source>Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6</source>
-        <translation>Проіндексовано %1, без змін %2, з помилкою %3, вилучено %4 — %5 с%6</translation>
+        <translation>已索引 %1，未变化 %2，失败 %3，已清除 %4 —— %5 秒%6</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="764" />
         <location filename="../src/gui/MainWindow.cpp" line="775" />
         <location filename="../src/gui/MainWindow.cpp" line="977" />
         <source> (cancelled)</source>
-        <translation> (скасовано)</translation>
+        <translation>（已取消）</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="622" />
         <source>Only the working tree will be indexed.</source>
-        <translation>Індексуватиметься лише робоче дерево.</translation>
+        <translation>将只索引工作区。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="623" />
         <source>Branches to index: %1. Press Index to read them.</source>
-        <translation>Гілки для індексації: %1. Натисніть «Індексувати», щоб їх прочитати.</translation>
+        <translation>要索引的分支：%1。点击“建立索引”即可读取。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="757" />
         <source>Indexed %1, unchanged %2, failed %3, pruned %4 — %5 s%6; branches: %7 read, %8 unchanged</source>
-        <translation>Проіндексовано %1, без змін %2, з помилкою %3, вилучено %4 — %5 с%6; гілок: прочитано %7, без змін %8</translation>
+        <translation>已索引 %1，未变化 %2，失败 %3，已清除 %4 —— %5 秒%6；分支：已读取 %7，未变化 %8</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="781" />
         <source>Training the visual vocabulary</source>
-        <translation>Тренування візуального словника</translation>
+        <translation>正在训练视觉词典</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="844" />
         <source>No descriptors to train on.</source>
-        <translation>Немає дескрипторів для тренування.</translation>
+        <translation>没有可用于训练的描述子。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="854" />
         <source>Vocabulary failed: %1</source>
-        <translation>Помилка словника: %1</translation>
+        <translation>视觉词典失败：%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="864" />
         <source>Shortlist index failed: %1</source>
-        <translation>Помилка індексу шортліста: %1</translation>
+        <translation>候选索引失败：%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="875" />
         <source>Ready: %1 images searchable by object, %2-word vocabulary.</source>
-        <translation>Готово: %1 картинок доступні для пошуку за об'єктом, словник із %2 слів.</translation>
+        <translation>已就绪：%1 张图片可按对象搜索，词典含 %2 个词。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="889" />
         <source>Cancelling…</source>
-        <translation>Скасування…</translation>
+        <translation>正在取消…</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="902" />
         <location filename="../src/gui/MainWindow.cpp" line="1113" />
         <location filename="../src/gui/MainWindow.cpp" line="1338" />
         <source>Build an index for this folder first.</source>
-        <translation>Спершу побудуйте індекс для цієї папки.</translation>
+        <translation>请先为该目录建立索引。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="913" />
         <source>Matching</source>
-        <translation>Зіставлення</translation>
+        <translation>匹配中</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="960" />
         <source>#%1  %2  %3 files  %4</source>
-        <translation>#%1  %2  файлів: %3  %4</translation>
+        <translation>#%1  %2  %3 个文件  %4</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="963" />
         <source>exact</source>
-        <translation>точна</translation>
+        <translation>完全相同</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="964" />
         <source>near d≤%1</source>
-        <translation>близька d≤%1</translation>
+        <translation>相近 d≤%1</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="969" />
         <source>%1 groups, %2 reclaimable</source>
-        <translation>%1 груп, можна звільнити %2</translation>
+        <translation>%1 组，可释放 %2</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="973" />
         <source> — %1 oversized hash buckets skipped</source>
-        <translation> — пропущено завеликих хеш-кошиків: %1</translation>
+        <translation> —— 已跳过 %1 个过大的哈希桶</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1000" />
         <source>Choose a reference image</source>
-        <translation>Виберіть зразок</translation>
+        <translation>选择参考图片</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1001" />
         <source>Images (*.png *.jpg *.jpeg);;All files (*)</source>
-        <translation>Картинки (*.png *.jpg *.jpeg);;Усі файли (*)</translation>
+        <translation>图片 (*.png *.jpg *.jpeg);;所有文件 (*)</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1017" />
         <source>Cannot read %1: %2</source>
-        <translation>Не вдалося прочитати %1: %2</translation>
+        <translation>无法读取 %1：%2</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1047" />
         <source>The clipboard holds no image.</source>
-        <translation>У буфері обміну немає картинки.</translation>
+        <translation>剪贴板中没有图片。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1051" />
         <source>(clipboard, %1 x %2)</source>
-        <translation>(буфер обміну, %1 x %2)</translation>
+        <translation>（剪贴板，%1 x %2）</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1055" />
         <source>Pasted a %1 x %2 screenshot — drag a box around the object.</source>
-        <translation>Вставлено скріншот %1 x %2 — обведіть об'єкт рамкою.</translation>
+        <translation>已粘贴 %1 x %2 的截图 —— 在对象周围拖出一个框。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1082" />
         <source>This index has no descriptors or vocabulary yet. Build them with:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</source>
-        <translation>У цьому індексі ще немає дескрипторів і словника. Побудуйте їх так:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</translation>
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</source>
+        <translation>该索引还没有描述子和视觉词典。请这样生成：
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1097" />
         <source>This index has no object-search data — press Index with "Object search data" ticked. Until then only whole-image similarity is available, which cannot find an object inside a picture.</source>
-        <translation>У цьому індексі немає даних для пошуку об'єктів — натисніть «Індексувати» з увімкненим «Дані для пошуку об'єктів». Доти доступна лише схожість зображення в цілому, яка не вміє знаходити об'єкт усередині картинки.</translation>
+        <translation>该索引没有对象搜索数据 —— 请勾选“对象搜索数据”后再点击“建立索引”。在此之前只能使用整图相似度，而它无法在图片内部找出某个对象。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1119" />
@@ -615,133 +606,131 @@ useless for finding a small object inside a screenshot.</source>
 
 Build them first:
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</source>
-        <translation>У цьому індексі ще немає дескрипторів локальних ознак, тож знайти об'єкт усередині картинки неможливо.
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</source>
+        <translation>该索引还没有局部特征描述子，因此无法在图片内部定位对象。
 
-Спершу побудуйте їх:
+请先生成它们：
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</translation>
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1132" />
         <source>Paste a screenshot with Ctrl+V, drop an image, or pick a file first.</source>
-        <translation>Спершу вставте скріншот через Ctrl+V, перетягніть картинку або виберіть файл.</translation>
+        <translation>请先用 Ctrl+V 粘贴截图、拖入图片，或选择一个文件。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1158" />
         <source>Locating</source>
-        <translation>Пошук об'єкта</translation>
+        <translation>定位中</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1217" />
         <source>Searching</source>
-        <translation>Пошук</translation>
+        <translation>搜索中</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1255" />
         <source>distance</source>
-        <translation>відстань</translation>
+        <translation>距离</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1263" />
         <source>the same picture</source>
-        <translation>та сама картинка</translation>
+        <translation>同一张图片</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1265" />
         <source>plausibly the same picture, re-encoded or rescaled</source>
-        <translation>імовірно та сама картинка, перекодована чи змасштабована</translation>
+        <translation>很可能是同一张图片，只是重新编码或缩放过</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1267" />
         <source>nothing convincing — these are far apart, whatever the scores suggest</source>
-        <translation>нічого переконливого — вони далеко одне від одного, хоч би що показували оцінки</translation>
+        <translation>没有可信的结果 —— 无论分数如何，它们相差很远</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1270" />
         <source>%1 hits of %2 indexed files, closest distance %3: %4. Whole-image similarity, not object location.</source>
-        <translation>%1 збігів із %2 проіндексованих файлів, найменша відстань %3: %4. Це схожість зображення в цілому, а не пошук об'єкта.</translation>
+        <translation>在 %2 个已索引文件中找到 %1 个结果，最近距离 %3：%4。这是整图相似度，不是对象定位。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1294" />
         <source>inliers</source>
-        <translation>інлаєрів</translation>
+        <translation>内点</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1299" />
         <source>Nothing located. Try boxing the object, or check that the asset is actually indexed.</source>
-        <translation>Нічого не знайдено. Спробуйте обвести об'єкт рамкою або перевірте, чи асет справді є в індексі.</translation>
+        <translation>没有定位到任何内容。可以试着框出对象，或确认该素材确实已被索引。</translation>
     </message>
     <message numerus="yes">
         <location filename="../src/gui/MainWindow.cpp" line="1315" />
         <source>Located %n asset(s); best: %1 (%2 inliers, %3% consistent)</source>
         <translation>
-            <numerusform>Знайдено %n асет; найкращий: %1 (%2 інлаєрів, %3% узгоджених)</numerusform>
-            <numerusform>Знайдено %n асети; найкращий: %1 (%2 інлаєрів, %3% узгоджених)</numerusform>
-            <numerusform>Знайдено %n асетів; найкращий: %1 (%2 інлаєрів, %3% узгоджених)</numerusform>
+            <numerusform>定位到 %n 个素材；最佳：%1（%2 个内点，%3% 一致）</numerusform>
         </translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1351" />
         <source>Looking for copies of %1…</source>
-        <translation>Шукаю копії %1…</translation>
+        <translation>正在查找 %1 的副本…</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1367" />
         <source>%1 lives in branch %2, and this folder is no longer a git repository.</source>
-        <translation>%1 лежить у гілці %2, а ця папка вже не є репозиторієм git.</translation>
+        <translation>%1 位于分支 %2，而此目录已不再是 git 仓库。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1376" />
         <source>Cannot read %1 from branch %2: %3</source>
-        <translation>Не вдалося прочитати %1 з гілки %2: %3</translation>
+        <translation>无法从分支 %2 读取 %1：%3</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1394" />
         <source>Cannot write a temporary copy of %1.</source>
-        <translation>Не вдалося створити тимчасову копію %1.</translation>
+        <translation>无法写入 %1 的临时副本。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1402" />
         <source>Opened %1 from branch %2.</source>
-        <translation>Відкрито %1 з гілки %2.</translation>
+        <translation>已从分支 %2 打开 %1。</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1430" />
         <source>Open</source>
-        <translation>Відкрити</translation>
+        <translation>打开</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1435" />
         <source>Reveal in file manager</source>
-        <translation>Показати у файловому менеджері</translation>
+        <translation>在文件管理器中显示</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1441" />
         <source>Find duplicates of this image</source>
-        <translation>Знайти дублікати цієї картинки</translation>
+        <translation>查找这张图片的重复项</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1443" />
         <source>Use as reference image</source>
-        <translation>Використати як зразок</translation>
+        <translation>用作参考图片</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1455" />
         <source>Only for files in the working tree</source>
-        <translation>Лише для файлів робочого дерева</translation>
+        <translation>仅适用于工作区中的文件</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1460" />
         <source>Copy full path</source>
-        <translation>Копіювати повний шлях</translation>
+        <translation>复制完整路径</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1461" />
         <source>Copy path relative to the root</source>
-        <translation>Копіювати шлях відносно кореня</translation>
+        <translation>复制相对于根目录的路径</translation>
     </message>
 </context>
 <context>
@@ -750,8 +739,8 @@ Build them first:
         <location filename="../src/gui/QueryImageView.cpp" line="135" />
         <source>Ctrl+V to paste a screenshot,
 or drop an image here</source>
-        <translation>Ctrl+V, щоб вставити скріншот,
-або перетягніть картинку сюди</translation>
+        <translation>按 Ctrl+V 粘贴截图，
+或把图片拖到这里</translation>
     </message>
 </context>
 <context>
@@ -759,7 +748,7 @@ or drop an image here</source>
     <message>
         <location filename="../src/gui/ResultModel.cpp" line="159" />
         <source>distance %1</source>
-        <translation>відстань %1</translation>
+        <translation>距离 %1</translation>
     </message>
 </context>
 <context>
@@ -767,42 +756,42 @@ or drop an image here</source>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="90" />
         <source>scanning</source>
-        <translation>сканування</translation>
+        <translation>扫描</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="91" />
         <source>indexing</source>
-        <translation>індексація</translation>
+        <translation>索引</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="92" />
         <source>descriptors</source>
-        <translation>дескриптори</translation>
+        <translation>描述子</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="93" />
         <source>pruning</source>
-        <translation>очищення</translation>
+        <translation>清理</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="94" />
         <source>loading</source>
-        <translation>завантаження</translation>
+        <translation>载入</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="95" />
         <source>matching</source>
-        <translation>зіставлення</translation>
+        <translation>匹配</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="96" />
         <source>collecting</source>
-        <translation>збирання</translation>
+        <translation>汇总</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="97" />
         <source>verifying</source>
-        <translation>перевірка</translation>
+        <translation>校验</translation>
     </message>
 </context>
 <context>
@@ -810,12 +799,12 @@ or drop an image here</source>
     <message>
         <location filename="../src/gui/Theme.cpp" line="228" />
         <source>System</source>
-        <translation>Системна</translation>
+        <translation>系统</translation>
     </message>
     <message>
         <location filename="../src/gui/Theme.cpp" line="229" />
         <source>Sci-fi</source>
-        <translation>Sci-fi</translation>
+        <translation>科幻</translation>
     </message>
     <message>
         <location filename="../src/gui/Theme.cpp" line="230" />
@@ -825,7 +814,7 @@ or drop an image here</source>
     <message>
         <location filename="../src/gui/Theme.cpp" line="231" />
         <source>Blossom</source>
-        <translation>Квітуча</translation>
+        <translation>花语</translation>
     </message>
 </context>
 </TS>

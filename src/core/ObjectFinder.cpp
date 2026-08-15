@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-namespace iw {
+namespace argus {
 
 struct ObjectFinder::Impl {
     Database        database;
@@ -83,7 +83,7 @@ std::unique_ptr<ObjectFinder> ObjectFinder::create(const QString &databasePath,
     self->d->vocabulary = Vocabulary::load(featureDir + QStringLiteral("/vocab.bin"), error);
     if (!self->d->vocabulary) {
         if (error) {
-            *error = QStringLiteral("%1\nhint: run 'imageworker vocab' to train one")
+            *error = QStringLiteral("%1\nhint: run 'argus vocab' to train one")
                          .arg(*error);
         }
         return nullptr;
@@ -156,7 +156,7 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     QHash<qint64, float> bowScores;
     bowScores.reserve(shortlist.size());
     for (const BowHit &hit : shortlist)
-        bowScores.insert(hit.fileId, hit.score);
+        bowScores.insert(hit.recordId, hit.score);
 
     // ---- 3. Verify the shortlist -------------------------------------------
     struct Verified {
@@ -164,6 +164,9 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
         int            matches;
         GeometryResult geometry;
     };
+    // Several tiles of one picture can each verify. They are the same answer
+    // seen through different windows, so only the strongest is kept.
+    QHash<qint64, int> bestByFile;
     QList<Verified> verified;
 
     // Phase A, serial: pull every candidate's features into memory. Neither the
@@ -182,7 +185,7 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
             break;
 
         FeatureRecord record;
-        if (!d->database.featuresFor(hit.fileId, options.model, &record))
+        if (!d->database.featureById(hit.recordId, &record))
             continue;
 
         FeatureLocation location;
@@ -195,7 +198,7 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
         if (assetFeatures.isEmpty())
             continue;
 
-        candidates.append({ hit.fileId, std::move(assetFeatures) });
+        candidates.append({ record.fileId, std::move(assetFeatures) });
     }
 
     // Phase B, parallel: match and verify. Each worker owns a session, because
@@ -267,8 +270,24 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
             lastMatcherError = outcome.error;
             continue;
         }
-        if (outcome.geometry.ok)
-            verified.append({ candidates.at(i).fileId, outcome.matches, outcome.geometry });
+        if (!outcome.geometry.ok)
+            continue;
+
+        // No coordinate translation here, and none is needed: the homography
+        // maps the tile onto the query, so the outline is already in query
+        // pixels, which is the frame the box is drawn on. The tile's position
+        // inside its picture never leaves the index.
+        Verified entry{ candidates.at(i).fileId, outcome.matches, outcome.geometry };
+
+        const auto seen = bestByFile.constFind(entry.fileId);
+        if (seen != bestByFile.constEnd()) {
+            Verified &kept = verified[*seen];
+            if (entry.geometry.inliers > kept.geometry.inliers)
+                kept = entry;
+            continue;
+        }
+        bestByFile.insert(entry.fileId, static_cast<int>(verified.size()));
+        verified.append(entry);
     }
 
     if (progress)
@@ -396,4 +415,4 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     return out;
 }
 
-} // namespace iw
+} // namespace argus

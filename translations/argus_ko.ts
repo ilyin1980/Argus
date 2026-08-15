@@ -49,12 +49,12 @@
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="18" />
         <location filename="../src/gui/HelpDialog.cpp" line="85" />
-        <source>ImageWorker — Help</source>
-        <translation>ImageWorker — 도움말</translation>
+        <source>Argus — Help</source>
+        <translation>Argus — 도움말</translation>
     </message>
     <message>
         <location filename="../src/gui/HelpDialog.cpp" line="57" />
-        <source>Using ImageWorker</source>
+        <source>Using Argus</source>
         <translation>사용 방법</translation>
     </message>
     <message>
@@ -72,8 +72,8 @@
     <name>MainWindow</name>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="14" />
-        <source>ImageWorker</source>
-        <translation>ImageWorker</translation>
+        <source>Argus</source>
+        <translation>Argus</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="54" />
@@ -110,11 +110,11 @@
     <message>
         <location filename="../src/gui/MainWindow.ui" line="105" />
         <source>Directory holding the index database, previews and descriptors.
-Defaults to .imageworker inside the image folder; point it elsewhere to
+Defaults to .argus inside the image folder; point it elsewhere to
 keep a read-only or network share untouched, or to put the index on a
 faster disk.</source>
         <translation>색인 데이터베이스와 미리보기, 서술자를 두는 폴더입니다.
-기본값은 이미지 폴더 안의 .imageworker입니다. 읽기 전용 위치나
+기본값은 이미지 폴더 안의 .argus입니다. 읽기 전용 위치나
 네트워크 공유를 건드리지 않으려면, 또는 더 빠른 디스크에 색인을
 두려면 다른 위치를 지정하세요.</translation>
     </message>
@@ -130,7 +130,7 @@ faster disk.</source>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.ui" line="132" />
-        <source>Also build the neural descriptors that let ImageWorker locate an
+        <source>Also build the neural descriptors that let Argus locate an
 asset inside a screenshot. Roughly doubles indexing time and adds
 about 40 KB per image; without them only duplicate detection and
 whole-image similarity work.</source>
@@ -357,13 +357,13 @@ useless for finding a small object inside a screenshot.</source>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="316" />
-        <source>About ImageWorker</source>
-        <translation>ImageWorker 정보</translation>
+        <source>About Argus</source>
+        <translation>Argus 정보</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="317" />
-        <source>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;imageworker-gui&lt;/b&gt; and the headless &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;ImageWorker %1&lt;/h3&gt;&lt;p&gt;스크린샷 안에 어떤 이미지 에셋이 어디에 나타나는지 찾아내고, 폴더 안의 중복을 묶어 줍니다.&lt;/p&gt;&lt;p&gt;하나의 코어 라이브러리로 만든 두 개의 실행 파일로 배포됩니다: &lt;b&gt;imageworker-gui&lt;/b&gt;와 명령줄용 &lt;b&gt;imageworker&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;&lt;b&gt;F1&lt;/b&gt;을 누르면 설명서가 열립니다.&lt;/p&gt;</translation>
+        <source>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;Finds which image assets appear inside a screenshot, and where; and groups duplicates in a folder.&lt;/p&gt;&lt;p&gt;Ships as two executables built from one core library: &lt;b&gt;argus-gui&lt;/b&gt; and the headless &lt;b&gt;argus&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;Press &lt;b&gt;F1&lt;/b&gt; for the manual.&lt;/p&gt;</source>
+        <translation>&lt;h3&gt;Argus %1&lt;/h3&gt;&lt;p&gt;스크린샷 안에 어떤 이미지 에셋이 어디에 나타나는지 찾아내고, 폴더 안의 중복을 묶어 줍니다.&lt;/p&gt;&lt;p&gt;하나의 코어 라이브러리로 만든 두 개의 실행 파일로 배포됩니다: &lt;b&gt;argus-gui&lt;/b&gt;와 명령줄용 &lt;b&gt;argus&lt;/b&gt;.&lt;/p&gt;&lt;p&gt;&lt;b&gt;F1&lt;/b&gt;을 누르면 설명서가 열립니다.&lt;/p&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="358" />
@@ -590,11 +590,11 @@ useless for finding a small object inside a screenshot.</source>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1082" />
         <source>This index has no descriptors or vocabulary yet. Build them with:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</source>
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</source>
         <translation>이 색인에는 아직 서술자와 시각 어휘가 없습니다. 다음으로 만드세요:
-  imageworker index &lt;dir&gt; --db &lt;db&gt; --features
-  imageworker vocab &lt;dir&gt; --db &lt;db&gt;</translation>
+  argus index &lt;dir&gt; --db &lt;db&gt; --features
+  argus vocab &lt;dir&gt; --db &lt;db&gt;</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1097" />
@@ -607,14 +607,14 @@ useless for finding a small object inside a screenshot.</source>
 
 Build them first:
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</source>
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</source>
         <translation>이 색인에는 아직 지역 특징 서술자가 없어 이미지 안에서 객체를 찾을 수 없습니다.
 
 먼저 만드세요:
 
-  imageworker index "%1" --db "%2" --features
-  imageworker vocab "%1" --db "%2"</translation>
+  argus index "%1" --db "%2" --features
+  argus vocab "%1" --db "%2"</translation>
     </message>
     <message>
         <location filename="../src/gui/MainWindow.cpp" line="1132" />

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Argus
+GenericName=Visual similarity search
+Comment=Find which image assets appear inside a screenshot, and where
+Exec=argus-gui %f
+Icon=argus
+Terminal=false
+Categories=Graphics;Photography;Utility;
+Keywords=image;search;duplicate;similar;screenshot;asset;texture;
+MimeType=image/png;image/jpeg;

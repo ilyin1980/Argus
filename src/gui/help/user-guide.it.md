@@ -1,6 +1,9 @@
-# Come usare ImageWorker
+# Come usare Argus
 
-ImageWorker risponde a due domande su una cartella di file `png` e `jpg`:
+> *Argo Panoptes, il gigante dai cento occhi: metà dei suoi occhi restavano
+> aperti mentre gli altri dormivano, così nulla gli sfuggiva.*
+
+Argus risponde a due domande su una cartella di file `png` e `jpg`:
 
 - **Dove compare questo asset nel mio screenshot?** — il compito principale.
 - **Quali file di questa cartella sono duplicati?** — quello secondario.
@@ -10,10 +13,10 @@ ImageWorker risponde a due domande su una cartella di file `png` e `jpg`:
 ## 1. Puntare a una cartella
 
 **Immagini** è la cartella in cui cercare. **Indice in** è il posto dove
-ImageWorker tiene i propri dati: il database, le anteprime e i descrittori.
+Argus tiene i propri dati: il database, le anteprime e i descrittori.
 
 Per impostazione predefinita l'indice finisce in una cartella nascosta
-`.imageworker` dentro la cartella delle immagini. Cambia **Indice in** quando le
+`.argus` dentro la cartella delle immagini. Cambia **Indice in** quando le
 immagini stanno su una condivisione di rete o di sola lettura, quando preferisci
 non aggiungere nulla al repository di qualcun altro, oppure quando l'indice sta
 meglio su un disco più veloce. **Predefinito** rimette tutto a posto.
@@ -72,8 +75,8 @@ Se **Individua un oggetto** è disattivato, l'indice non ha ancora descrittori.
 Creali una volta dalla riga di comando:
 
 ```
-imageworker index "<cartella immagini>" --db "<cartella indice>\index.db" --features
-imageworker vocab "<cartella immagini>" --db "<cartella indice>\index.db"
+argus index "<cartella immagini>" --db "<cartella indice>\index.db" --features
+argus vocab "<cartella immagini>" --db "<cartella indice>\index.db"
 ```
 
 ---
@@ -132,7 +135,7 @@ tutto, e dentro un branch vengono riletti solo i file il cui contenuto è
 davvero cambiato.
 
 > **Git LFS**: le immagini vengono risolte dal tuo archivio LFS locale. Se un
-> branch non è mai stato scaricato, ImageWorker dice quanti oggetti mancano e che
+> branch non è mai stato scaricato, Argus dice quanti oggetti mancano e che
 > `git lfs fetch --all` li recupera: da solo non scarica nulla.
 
 ---

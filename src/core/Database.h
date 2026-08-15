@@ -26,7 +26,7 @@
 
 class QSqlQuery;
 
-namespace iw {
+namespace argus {
 
 /** @brief Aggregate counters describing the whole index. */
 struct DatabaseSummary {
@@ -36,14 +36,26 @@ struct DatabaseSummary {
     qint64 totalBytes = 0; ///< Sum of file sizes.
 };
 
-/** @brief Index entry pointing at one image's descriptors in the flat store. */
+/**
+ * @brief Index entry pointing at one tile's descriptors in the flat store.
+ *
+ * A picture small enough for the extractor is one record with @ref tile 0 and
+ * no offset. A picture larger than the extractor window is cut into tiles, and
+ * each tile is a record of its own — which is what makes a small region of a
+ * large texture findable at all: the tile is a document the size of a query
+ * instead of a whole atlas, and it gets the full keypoint budget to itself.
+ */
 struct FeatureRecord {
+    qint64  id          = 0;    ///< Primary key; what the shortlist index refers to.
     qint64  fileId      = 0;
+    int     tile        = 0;    ///< 0 for a whole picture, otherwise the tile number.
     QString model;              ///< Extractor identity; stale models are re-extracted.
     int     count       = 0;    ///< Keypoints stored.
     int     dim         = 0;    ///< Descriptor length.
-    int     imageWidth  = 0;    ///< Image size the coordinates refer to.
+    int     imageWidth  = 0;    ///< Size of the image the coordinates refer to.
     int     imageHeight = 0;
+    int     offsetX     = 0;    ///< Where this tile starts in the parent picture.
+    int     offsetY     = 0;
     qint64  descOffset  = -1;   ///< Byte offset into the descriptor file.
     qint64  kptsOffset  = -1;   ///< Byte offset into the keypoint file.
 };
@@ -56,7 +68,7 @@ struct PendingFeature {
     QString blob; ///< Git object id, when @ref ref is set.
 };
 
-/** @brief Owns one SQLite connection and every statement ImageWorker issues. */
+/** @brief Owns one SQLite connection and every statement Argus issues. */
 class Database
 {
 public:
@@ -198,8 +210,29 @@ public:
      * @param model  Extractor identity to match.
      * @param out    Out-parameter receiving the record.
      * @return @c true when a record exists.
+     * @note Returns the first tile. Callers that need a specific one address it
+     *       by record id through @ref featureById.
      */
     bool featuresFor(qint64 fileId, const QString &model, FeatureRecord *out);
+
+    /**
+     * @brief Look up one descriptor location by its own key.
+     * @param recordId Primary key in the @c features table.
+     * @param out      Out-parameter receiving the record.
+     * @return @c true when a record exists.
+     * @note This is what the shortlist resolves: its documents are tiles, not
+     *       files, so a hit names a record and the record names the file.
+     */
+    bool featureById(qint64 recordId, FeatureRecord *out);
+
+    /**
+     * @brief Remove every descriptor location belonging to one file.
+     * @param fileId Primary key in the @c files table.
+     * @return @c true on success.
+     * @note Re-extracting a picture that used to be one record and is now
+     *       several — or the other way round — must not leave the old rows.
+     */
+    bool clearFeaturesFor(qint64 fileId);
 
     /**
      * @brief List decodable files that have no descriptors for this extractor yet.
@@ -262,6 +295,13 @@ private:
     bool migrateToRefs(QString *error);
 
     /**
+     * @brief Rebuild a @c features table that can hold only one row per file.
+     * @param error Optional out-parameter receiving a failure description.
+     * @return @c true when the database is already current or was migrated.
+     */
+    bool migrateToTiles(QString *error);
+
+    /**
      * @brief Fix tables left pointing at a table that no longer exists.
      * @param error Optional out-parameter receiving a failure description.
      * @return @c true when nothing needed fixing or the fix succeeded.
@@ -284,4 +324,4 @@ private:
     std::unique_ptr<QSqlQuery> m_deleteThumb;
 };
 
-} // namespace iw
+} // namespace argus

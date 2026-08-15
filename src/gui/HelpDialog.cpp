@@ -15,7 +15,7 @@
 HelpDialog::HelpDialog(QWidget *parent)
     : QDialog(parent)
 {
-    setWindowTitle(tr("ImageWorker — Help"));
+    setWindowTitle(tr("Argus — Help"));
     // A manual you cannot keep open beside the window you are learning is half
     // a manual, so this is a plain window rather than a modal dialog.
     setWindowFlag(Qt::Window, true);
@@ -54,7 +54,7 @@ QString HelpDialog::documentPath(const QString &baseName)
 void HelpDialog::loadDocuments()
 {
     m_tabs->clear();
-    addDocument(tr("Using ImageWorker"), QStringLiteral("user-guide"));
+    addDocument(tr("Using Argus"), QStringLiteral("user-guide"));
     addDocument(tr("Command line"), QStringLiteral("cli-reference"));
 }
 
@@ -82,7 +82,7 @@ void HelpDialog::changeEvent(QEvent *event)
 {
     if (event->type() == QEvent::LanguageChange) {
         const int current = m_tabs->currentIndex();
-        setWindowTitle(tr("ImageWorker — Help"));
+        setWindowTitle(tr("Argus — Help"));
         loadDocuments();
         m_tabs->setCurrentIndex(std::max(0, current));
     }

@@ -13,7 +13,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 /**
  * @brief Serialise one file row.
@@ -64,4 +64,4 @@ QJsonObject summaryJson(const DuplicateReport &report);
  */
 QString toLine(const QJsonObject &object);
 
-} // namespace iw
+} // namespace argus

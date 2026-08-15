@@ -1,6 +1,9 @@
-# Como usar o ImageWorker
+# Como usar o Argus
 
-O ImageWorker responde a duas perguntas sobre uma pasta de arquivos `png` e
+> *Argos Panoptes, o gigante de cem olhos: metade dos olhos ficava aberta
+> enquanto os outros dormiam, de modo que nada lhe escapava.*
+
+O Argus responde a duas perguntas sobre uma pasta de arquivos `png` e
 `jpg`:
 
 - **Onde este asset aparece na minha captura de tela?** — a tarefa principal.
@@ -10,10 +13,10 @@ O ImageWorker responde a duas perguntas sobre uma pasta de arquivos `png` e
 
 ## 1. Aponte para uma pasta
 
-**Imagens** é a pasta a percorrer. **Índice em** é o lugar onde o ImageWorker
+**Imagens** é a pasta a percorrer. **Índice em** é o lugar onde o Argus
 guarda os próprios dados: o banco, as miniaturas e os descritores.
 
-Por padrão o índice vai para uma pasta oculta `.imageworker` dentro da pasta de
+Por padrão o índice vai para uma pasta oculta `.argus` dentro da pasta de
 imagens. Mude **Índice em** quando as imagens estiverem num compartilhamento de
 rede ou somente leitura, quando você preferir não acrescentar nada ao repositório
 de outra pessoa, ou quando o índice couber melhor num disco mais rápido.
@@ -71,8 +74,8 @@ Se **Localizar objeto** estiver desativado, o índice ainda não tem descritores
 Crie-os uma vez pela linha de comando:
 
 ```
-imageworker index "<pasta de imagens>" --db "<pasta do índice>\index.db" --features
-imageworker vocab "<pasta de imagens>" --db "<pasta do índice>\index.db"
+argus index "<pasta de imagens>" --db "<pasta do índice>\index.db" --features
+argus vocab "<pasta de imagens>" --db "<pasta do índice>\index.db"
 ```
 
 ---
@@ -130,7 +133,7 @@ Reindexar sai barato: um branch cuja ponta não se moveu é pulado por inteiro, 
 dentro de um branch só são relidos os arquivos cujo conteúdo realmente mudou.
 
 > **Git LFS**: as imagens são resolvidas a partir do seu armazenamento LFS local.
-> Se um branch nunca foi baixado, o ImageWorker diz quantos objetos faltam e que
+> Se um branch nunca foi baixado, o Argus diz quantos objetos faltam e que
 > `git lfs fetch --all` os traz — sozinho ele não baixa nada.
 
 ---

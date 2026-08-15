@@ -18,7 +18,7 @@
 
 #include "core/FeatureExtractor.h"
 
-namespace iw {
+namespace argus {
 
 /** @brief One descriptor correspondence between two images. */
 struct FeatureMatch {
@@ -128,4 +128,4 @@ private:
     std::unique_ptr<Impl> d;
 };
 
-} // namespace iw
+} // namespace argus

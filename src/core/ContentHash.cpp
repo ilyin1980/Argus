@@ -5,7 +5,7 @@
 
 #include <cstring>
 
-namespace iw {
+namespace argus {
 
 QByteArray fileContentHash(const QString &absPath, qint64 *bytesRead)
 {
@@ -38,4 +38,4 @@ qint64 shortHash(const QByteArray &contentHash)
     return static_cast<qint64>(v);
 }
 
-} // namespace iw
+} // namespace argus

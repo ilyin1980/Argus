@@ -9,7 +9,7 @@
 
 #include "core/Types.h"
 
-namespace iw {
+namespace argus {
 
 class Database;
 
@@ -48,4 +48,4 @@ DuplicateReport findDuplicates(Database &db,
                                const std::atomic_bool *cancel = nullptr,
                                const std::function<void(int, int, const QString &)> &progress = {});
 
-} // namespace iw
+} // namespace argus

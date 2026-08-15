@@ -1,4 +1,4 @@
-# Doxygen configuration for ImageWorker.
+# Doxygen configuration for Argus.
 #
 # Run it through the build rather than by hand:
 #   cmake --build build/<preset> --target docs
@@ -10,11 +10,13 @@
 # its documentation to itself; the default below is what you get when Doxygen is
 # invoked directly from the source root.
 
-PROJECT_NAME           = "ImageWorker"
+PROJECT_NAME           = "Argus"
 PROJECT_BRIEF          = "Find which image assets appear inside a screenshot, and where"
 PROJECT_NUMBER         = 0.1.0
 
 INPUT                  = src docs/mainpage.md
+IMAGE_PATH             = branding
+PROJECT_LOGO           = branding/argus-icon-128.png
 USE_MDFILE_AS_MAINPAGE = docs/mainpage.md
 RECURSIVE              = YES
 FILE_PATTERNS          = *.h *.cpp *.md
@@ -58,8 +60,8 @@ PREDEFINED             = Q_OBJECT= \
                          signals=public \
                          slots= \
                          Q_DECL_OVERRIDE=override \
-                         IMAGEWORKER_WITH_INFERENCE=1 \
-                         IMAGEWORKER_VERSION="0.1.0"
+                         ARGUS_WITH_INFERENCE=1 \
+                         ARGUS_VERSION="0.1.0"
 
 # Generated sources say nothing a reader needs; the vendored trees are not ours.
 EXCLUDE                = third_party build dist
