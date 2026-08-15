@@ -37,7 +37,17 @@ struct FindOptions {
     QString matcherPath;
     QString model         = QStringLiteral("disk"); ///< Extractor identity in the index.
 
-    int  shortlist    = 200;  ///< Candidates taken from the bag-of-words ranking.
+    /**
+     * @brief Candidates taken from the bag-of-words ranking.
+     *
+     * 400 rather than 200 because tiling turned one document per picture into
+     * one per tile, and because every change to the descriptors reshuffles this
+     * ranking. Measured on a 4810-tile library: at 200 the reference screenshot
+     * returns other artwork of the same character and not the file it was
+     * actually built from; at 400 that file comes first at 98% consistency.
+     * The cost is linear — about 18 seconds against 9.
+     */
+    int  shortlist    = 400;
     int  topK         = 10;   ///< Verified results returned.
 
     /**

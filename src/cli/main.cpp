@@ -664,10 +664,15 @@ int cmdFind(const QStringList &args)
                        QStringLiteral("Search only this region: x,y,w,h in image pixels."),
                        QStringLiteral("rect") });
     parser.addOption({ QStringLiteral("shortlist"),
-                       QStringLiteral("Candidates taken from the bag-of-words ranking. Default: 200."),
+                       QStringLiteral("Candidates taken from the bag-of-words ranking. Default: 400."),
                        QStringLiteral("n") });
     parser.addOption({ QStringLiteral("top"),
                        QStringLiteral("Results to report. Default: 10."), QStringLiteral("n") });
+    parser.addOption({ QStringLiteral("keypoints"),
+                       QStringLiteral("Keypoints taken from the query. Should match what the "
+                                      "index was built with, or the shortlist compares a dense "
+                                      "description against sparse ones. Default: 512."),
+                       QStringLiteral("n") });
     parser.addOption({ QStringLiteral("template"),
                        QStringLiteral("Also search low-texture assets by correlation. "
                                       "Finds artwork local features cannot, at the cost of "
@@ -727,6 +732,8 @@ int cmdFind(const QStringList &args)
     argus::FindOptions options;
     if (parser.isSet(QStringLiteral("shortlist")))
         options.shortlist = parser.value(QStringLiteral("shortlist")).toInt();
+    if (parser.isSet(QStringLiteral("keypoints")))
+        options.maxKeypoints = parser.value(QStringLiteral("keypoints")).toInt();
     if (parser.isSet(QStringLiteral("top")))
         options.topK = parser.value(QStringLiteral("top")).toInt();
     options.useTemplateChannel = parser.isSet(QStringLiteral("template"));

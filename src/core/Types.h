@@ -124,7 +124,16 @@ struct IndexOptions {
 
     bool    extractFeatures    = false; ///< Run the extractor after hashing.
     QString featureModelPath;           ///< Path to the extractor .onnx file.
-    int     featureMaxKeypoints = 512;  ///< Keypoints kept per image.
+    /**
+     * @brief Keypoints kept per tile.
+     *
+     * Per tile, not per picture: a large texture is several tiles and gets this
+     * budget for each of them. Measured on a 3300x1320 background, looking for
+     * a 200x228 region of it — 1% of its area: at 512 the region is found but
+     * ranks below 400 in the shortlist, at 2048 it comes first with 174 inliers
+     * at 95%. The cost is the descriptor store, which roughly doubles.
+     */
+    int     featureMaxKeypoints = 2048;
     int     featureMaxSide      = 1024; ///< Long side the extractor sees, and the tile size.
 
     /**
