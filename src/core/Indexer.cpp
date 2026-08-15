@@ -350,14 +350,21 @@ void Indexer::extractFeaturePass(Database &db,
                 reader.setDevice(&buffer);
             }
             reader.setAutoTransform(true);
-            const QSize full = reader.size();
-            if (full.isValid() && options.featureMaxSide > 0
-                && std::max(full.width(), full.height()) > options.featureMaxSide) {
-                QSize target = full;
-                target.scale(options.featureMaxSide, options.featureMaxSide, Qt::KeepAspectRatio);
-                if (!target.isEmpty())
-                    reader.setScaledSize(target);
-            }
+            // Read at full resolution and let the extractor do the downscale.
+            //
+            // Asking the reader for a reduced decode looks like the same
+            // picture and is not: the plugin resamples its own way, while
+            // FeatureExtractor::extract() uses QImage::scaled with a smooth
+            // transform. Two different 1024-pixel images produce two different
+            // sets of DISK keypoints, so descriptors written here did not
+            // describe what a query later compares against.
+            //
+            // A whole-image query survived that - there are hundreds of
+            // keypoints and enough of them agree - but a crop of a large
+            // texture did not: `match`, which reads at full size, verified a
+            // quarter-crop against its parent with 31 inliers at 78%, while
+            // `find` over the same index returned nothing for the same pair
+            // even with every image in the shortlist.
             images[i] = reader.read();
         });
 

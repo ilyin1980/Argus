@@ -57,11 +57,13 @@ std::vector<float> normalizedKeypoints(const FeatureSet &features, bool enabled)
  * @brief Reject projected quadrilaterals that cannot be a real placement.
  * @param outline Projected asset corners, in query pixels.
  * @param query   Features of the query, for its image size.
+ * @param asset   Features of the candidate, for its image size.
  * @param options Shape limits.
  * @return Empty when the shape is plausible, otherwise the reason to reject it.
  */
 QString shapeRejection(const QPolygonF &outline,
                        const FeatureSet &query,
+                       const FeatureSet &asset,
                        const GeometryOptions &options)
 {
     if (outline.size() != 4)
@@ -107,8 +109,29 @@ QString shapeRejection(const QPolygonF &outline,
     if (fraction < options.minAreaFraction)
         return QStringLiteral("projection collapsed to %1%% of the frame")
             .arg(fraction * 100.0, 0, 'g', 2);
-    if (fraction > options.maxAreaFraction)
-        return QStringLiteral("projection covers %1x the frame").arg(fraction, 0, 'f', 1);
+
+    // An asset bigger than the query legitimately projects to more than the
+    // frame: that is exactly what "this crop is a piece of that texture" looks
+    // like, and a fixed cap threw those answers away after verifying them. A
+    // 25% crop of a texture had 31 inliers at 78% consistency and was rejected
+    // for "covering 16x the frame", which was the correct answer stated as a
+    // fault.
+    //
+    // The ceiling therefore scales with how much bigger the asset is: at 1:1
+    // pixels the asset covers assetArea/queryArea frames, and the configured
+    // factor is the slack on top of that for a query captured larger than the
+    // source. A small asset blowing up over a big screenshot - the degenerate
+    // fit this check exists for - still hits the same tight limit as before.
+    const double assetArea = double(asset.imageWidth) * asset.imageHeight;
+    const double atNativeScale = (assetArea > 0.0) ? assetArea / queryArea : 1.0;
+    const double ceiling = options.maxAreaFraction * std::max(1.0, atNativeScale);
+    if (fraction > ceiling) {
+        return QStringLiteral("projection covers %1x the frame, over the %2x a %3x%4 asset allows")
+            .arg(fraction, 0, 'f', 1)
+            .arg(ceiling, 0, 'f', 1)
+            .arg(asset.imageWidth)
+            .arg(asset.imageHeight);
+    }
 
     // Extreme shear shows up as one pair of sides far longer than the other.
     double shortest = std::numeric_limits<double>::max();
@@ -341,7 +364,7 @@ GeometryResult verifyHomography(const FeatureSet &query,
         result.boundingBox = result.outline.boundingRect();
 
         if (options.checkShape) {
-            result.rejection = shapeRejection(result.outline, query, options);
+            result.rejection = shapeRejection(result.outline, query, asset, options);
             if (!result.rejection.isEmpty())
                 return result;
         }
