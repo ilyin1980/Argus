@@ -1,5 +1,8 @@
 #include "core/ObjectFinder.h"
 
+#include <QRectF>
+#include <QSet>
+
 #include "core/BowIndex.h"
 #include "core/Database.h"
 #include "core/DescriptorStore.h"
@@ -31,6 +34,17 @@ struct ObjectFinder::Impl {
     std::vector<std::unique_ptr<FeatureMatcher>> matchers;
     QString matcherPath;
     bool    matcherUseGpu = true;
+
+    /**
+     * @brief Rank candidates by asking the index about windows of the query.
+     * @param query             The screenshot or crop being searched.
+     * @param extractorOptions  Settings the query was described with.
+     * @param wanted            How many candidates the matcher will take.
+     * @return Merged ranking, best first, at most @p wanted long.
+     */
+    QList<BowHit> probedShortlist(const QImage &query,
+                                  const ExtractorOptions &extractorOptions,
+                                  int wanted);
 
     /**
      * @brief Ensure at least @p count matcher sessions exist.
@@ -113,6 +127,104 @@ std::unique_ptr<ObjectFinder> ObjectFinder::create(const QString &databasePath,
     return self;
 }
 
+namespace {
+
+/**
+ * @brief The windows a query is probed through, largest first.
+ * @param size Query size in pixels.
+ * @return The whole frame, then a 3x3 grid of half-size windows overlapping by
+ *         half, so anything up to a quarter of the frame is whole inside one.
+ */
+QList<QRect> probeWindows(const QSize &size)
+{
+    QList<QRect> windows;
+    windows.append(QRect(QPoint(0, 0), size));
+
+    const int w = size.width()  / 2;
+    const int h = size.height() / 2;
+    if (w < 64 || h < 64)
+        return windows;
+
+    for (int row = 0; row < 3; ++row) {
+        for (int col = 0; col < 3; ++col) {
+            windows.append(QRect(col * w / 2, row * h / 2, w, h));
+        }
+    }
+    return windows;
+}
+
+} // namespace
+
+QList<BowHit> ObjectFinder::Impl::probedShortlist(const QImage &query,
+                                                  const ExtractorOptions &extractorOptions,
+                                                  int wanted)
+{
+    // A bag-of-words vector describes a whole picture. That is the right
+    // question when the query *is* the thing being looked for, and the wrong
+    // one when the query is a screenshot that merely contains it: a 362x362
+    // asset inside a 1280x720 frame owns a seventh of the keypoints, so its
+    // words are outnumbered by furniture and the true source ranked past 500 of
+    // 4948. Boxing the object by hand fixed it, which is the evidence that the
+    // frame, not the matcher, was the problem.
+    //
+    // So the frame is asked about in windows as well as whole. Each window is
+    // cropped and described in its own right rather than by reusing the
+    // keypoints of the full-frame pass that happen to fall inside it - that
+    // shortcut costs nothing and is worth nothing, because those points were
+    // detected at the frame's scale and spread across the frame's budget.
+    // Measured on the reference screenshot: reusing them left the true source
+    // unreachable, describing the window properly ranks it first at 100%
+    // consistency. Ten extractions cost about a second; the matcher then spends
+    // ten times that on whatever they turn up.
+    QList<QList<BowHit>> ranked;
+
+    for (const QRect &window : probeWindows(query.size())) {
+        const QImage piece = window.size() == query.size() ? query : query.copy(window);
+
+        QString ignored;
+        const FeatureSet features = extractor->extract(piece, extractorOptions, &ignored);
+        if (features.count() < 24)
+            continue; // a window of flat background describes nothing
+
+        const QList<quint32> words =
+            vocabulary->assign(features.descriptors, features.count());
+        if (words.isEmpty())
+            continue;
+
+        const QList<BowHit> hits = bow->query(words, wanted);
+        if (!hits.isEmpty())
+            ranked.append(hits);
+    }
+
+    QList<BowHit> out;
+    if (ranked.isEmpty())
+        return out;
+
+    // Merged round-robin rather than concatenated: the object lives in one
+    // window and would otherwise be crowded out by the nine that hold
+    // background, each ranking its own furniture first with great confidence.
+    QSet<qint64> taken;
+    out.reserve(wanted);
+    for (int depth = 0; out.size() < wanted; ++depth) {
+        bool anyLeft = false;
+        for (const QList<BowHit> &list : ranked) {
+            if (depth >= list.size())
+                continue;
+            anyLeft = true;
+            const BowHit &hit = list.at(depth);
+            if (taken.contains(hit.recordId))
+                continue;
+            taken.insert(hit.recordId);
+            out.append(hit);
+            if (out.size() >= wanted)
+                break;
+        }
+        if (!anyLeft)
+            break;
+    }
+    return out;
+}
+
 QList<FindResult> ObjectFinder::find(const QImage &query,
                                      const FindOptions &options,
                                      const std::atomic_bool *cancel,
@@ -141,15 +253,8 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     }
 
     // ---- 2. Shortlist -------------------------------------------------------
-    const QList<quint32> words =
-        d->vocabulary->assign(queryFeatures.descriptors, queryFeatures.count());
-    if (words.isEmpty()) {
-        if (error)
-            *error = QStringLiteral("could not quantise the query descriptors");
-        return out;
-    }
-
-    const QList<BowHit> shortlist = d->bow->query(words, std::max(1, options.shortlist));
+    const QList<BowHit> shortlist =
+        d->probedShortlist(query, extractorOptions, std::max(1, options.shortlist));
     if (shortlist.isEmpty())
         return out;
 
