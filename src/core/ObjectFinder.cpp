@@ -258,6 +258,9 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     if (shortlist.isEmpty())
         return out;
 
+    // Keyed by record id, because that is what the shortlist ranks: its
+    // documents are tiles. Turning that into a per-file score has to wait until
+    // the verification below decides which tile of a file actually won.
     QHash<qint64, float> bowScores;
     bowScores.reserve(shortlist.size());
     for (const BowHit &hit : shortlist)
@@ -279,7 +282,8 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     // QSqlQuery) is safe to touch from several threads, and at roughly 40 KB per
     // candidate the whole shortlist costs a few megabytes.
     struct Candidate {
-        qint64     fileId = 0;
+        qint64     fileId   = 0;
+        qint64     recordId = 0; ///< The tile this came from; what bowScores is keyed by.
         FeatureSet features;
     };
     QList<Candidate> candidates;
@@ -303,7 +307,7 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
         if (assetFeatures.isEmpty())
             continue;
 
-        candidates.append({ record.fileId, std::move(assetFeatures) });
+        candidates.append({ record.fileId, record.id, std::move(assetFeatures) });
     }
 
     // Phase B, parallel: match and verify. Each worker owns a session, because
@@ -365,6 +369,14 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
     int matcherAttempts = 0;
     int matcherFailures = 0;
     QString lastMatcherError;
+
+    // The shortlist score of the tile that won, per file. Reporting it needs
+    // this indirection: bowScores is keyed by record id and the result is keyed
+    // by file id, and reading one map with the other's keys returned 0.0 for
+    // every result — a column of zeroes in the GUI and in --json that looked
+    // like the shortlist had contributed nothing.
+    QHash<qint64, float> bowScoreByFile;
+
     for (int i = 0; i < candidates.size(); ++i) {
         const Outcome &outcome = outcomes[static_cast<size_t>(i)];
         if (!outcome.attempted)
@@ -382,16 +394,20 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
         // maps the tile onto the query, so the outline is already in query
         // pixels, which is the frame the box is drawn on. The tile's position
         // inside its picture never leaves the index.
-        Verified entry{ candidates.at(i).fileId, outcome.matches, outcome.geometry };
+        const Candidate &candidate = candidates.at(i);
+        Verified entry{ candidate.fileId, outcome.matches, outcome.geometry };
 
         const auto seen = bestByFile.constFind(entry.fileId);
         if (seen != bestByFile.constEnd()) {
             Verified &kept = verified[*seen];
-            if (entry.geometry.inliers > kept.geometry.inliers)
+            if (entry.geometry.inliers > kept.geometry.inliers) {
                 kept = entry;
+                bowScoreByFile.insert(entry.fileId, bowScores.value(candidate.recordId, 0.0f));
+            }
             continue;
         }
         bestByFile.insert(entry.fileId, static_cast<int>(verified.size()));
+        bowScoreByFile.insert(entry.fileId, bowScores.value(candidate.recordId, 0.0f));
         verified.append(entry);
     }
 
@@ -447,7 +463,7 @@ QList<FindResult> ObjectFinder::find(const QImage &query,
 
         FindResult result;
         result.file        = *row;
-        result.bowScore    = bowScores.value(v.fileId, 0.0f);
+        result.bowScore    = bowScoreByFile.value(v.fileId, 0.0f);
         result.matches     = v.matches;
         result.inliers     = v.geometry.inliers;
         result.inlierRatio = v.geometry.inlierRatio;

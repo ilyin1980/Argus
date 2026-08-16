@@ -167,6 +167,53 @@ if(ARGUS_WITH_INFERENCE)
             install(FILES "${_dll}" DESTINATION .)
         endif()
     endforeach()
+
+    # ARGUS_RUNTIME_DLLS is a Windows list, so on Linux and macOS nothing above
+    # ships the ONNX Runtime library at all. Both packages therefore built,
+    # weighed the right amount, and died on the first line:
+    #
+    #   ./argus: error while loading shared libraries: libonnxruntime.so.1
+    #   dyld: Library not loaded: @rpath/libonnxruntime.1.24.1.dylib
+    #
+    # A package that cannot start is worse than no package, because it looks
+    # like one. The library goes in beside the executables, and the rpath below
+    # is what lets them find it there.
+    if(NOT WIN32)
+        file(GLOB _ort_runtime
+             "${ARGUS_ORT_ROOT}/lib/libonnxruntime.so*"
+             "${ARGUS_ORT_ROOT}/lib/libonnxruntime.*dylib"
+             "${ARGUS_ORT_ROOT}/lib/libonnxruntime_providers_*.so"
+             "${ARGUS_ORT_ROOT}/lib/libonnxruntime_providers_*.dylib")
+        if(_ort_runtime)
+            # PROGRAMS, not FILES: these are executable shared objects, and the
+            # symlink members of the set have to keep their permissions.
+            install(PROGRAMS ${_ort_runtime} DESTINATION .)
+            if(APPLE AND ARGUS_BUILD_GUI)
+                # The bundle looks beside itself, not beside the CLI.
+                install(PROGRAMS ${_ort_runtime}
+                        DESTINATION "argus-gui.app/Contents/Frameworks")
+            endif()
+        else()
+            message(WARNING "No ONNX Runtime shared library found under"
+                            " ${ARGUS_ORT_ROOT}/lib — the package will not start.")
+        endif()
+    endif()
+endif()
+
+# Where a packaged executable looks for the shared libraries shipped with it.
+# Without this the loader searches only the system paths, finds nothing, and
+# the binary never reaches main().
+if(APPLE)
+    set_target_properties(argus PROPERTIES INSTALL_RPATH "@executable_path")
+    if(ARGUS_BUILD_GUI)
+        set_target_properties(argus-gui PROPERTIES
+                              INSTALL_RPATH "@executable_path/../Frameworks")
+    endif()
+elseif(UNIX)
+    set_target_properties(argus PROPERTIES INSTALL_RPATH "$ORIGIN")
+    if(ARGUS_BUILD_GUI)
+        set_target_properties(argus-gui PROPERTIES INSTALL_RPATH "$ORIGIN")
+    endif()
 endif()
 
 if(ARGUS_PACKAGE_MODELS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/models")
@@ -221,6 +268,52 @@ if(ARGUS_DEPLOYQT)
     endforeach()
 else()
     message(STATUS "  deploy tool     : not found — packages will need Qt on the system")
+endif()
+
+# macdeployqt fixes application bundles and nothing else, so the headless
+# `argus` came out of the package still pointing at /opt/homebrew for Qt and
+# every OpenCV module — paths that exist on this machine and on no customer's.
+# The bundle was fine and the CLI beside it was unrunnable, which is the kind of
+# difference that is only ever found by trying it somewhere else.
+#
+# fixup_bundle copies each non-system dependency next to the executable and
+# rewrites the load commands to @executable_path. It runs last, because it can
+# only fix what has already been installed.
+if(APPLE)
+    # macdeployqt fixes application bundles and nothing else, so the headless
+    # `argus` came out of the package still pointing at /opt/homebrew for Qt and
+    # every OpenCV module — paths that exist on this machine and on no
+    # customer's. The bundle was fine and the CLI beside it was unrunnable.
+    #
+    # Two approaches were tried and abandoned. BundleUtilities' fixup_bundle
+    # assumes a .app layout, computes Frameworks/ one directory too high for a
+    # bare executable, and aborts the whole package when one transitive @rpath
+    # does not resolve. Repointing the CLI at the bundle's Frameworks got
+    # further, then failed too: macdeployqt writes the bundled libraries'
+    # own references as @executable_path/../Frameworks/…, which is correct only
+    # for an executable inside Contents/MacOS. Homebrew's OpenCV 5 drags in VTK,
+    # so that is 276 libraries to rewrite.
+    #
+    # So the CLI moves to where those paths are already true. The real binary
+    # goes inside the bundle next to the GUI, and what sits at the package root
+    # is a two-line launcher. Nothing is rewritten and nothing is duplicated.
+    install(PROGRAMS "$<TARGET_FILE:argus>"
+            DESTINATION "argus-gui.app/Contents/MacOS")
+
+    install(CODE [[
+        set(_launcher "${CMAKE_INSTALL_PREFIX}/argus")
+        set(_real "${CMAKE_INSTALL_PREFIX}/argus-gui.app/Contents/MacOS/argus")
+        if(EXISTS "${_real}")
+            message(STATUS "Replacing the CLI with a launcher into the bundle")
+            file(WRITE "${_launcher}"
+"#!/bin/sh
+# The real binary lives inside the application bundle, where the library paths
+# macdeployqt wrote are correct. This only forwards to it.
+exec \"$(dirname \"$0\")/argus-gui.app/Contents/MacOS/argus\" \"$@\"
+")
+            execute_process(COMMAND chmod +x "${_launcher}")
+        endif()
+    ]])
 endif()
 
 # ---------------------------------------------------------------------------

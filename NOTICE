@@ -1,0 +1,20 @@
+﻿Argus
+Copyright (c) 2026 Oleksandr Ilin
+
+Licensed under the Apache License, Version 2.0. See LICENSE.
+
+This product bundles third-party components under their own licences:
+
+  Qt 6                     LGPL-3.0    dynamically linked; a user may replace
+                                       the Qt libraries with their own build,
+                                       which is what LGPL-3.0 requires and what
+                                       dynamic linking here provides
+  OpenCV                   Apache-2.0  unmodified
+  ONNX Runtime             MIT
+  DirectML (Windows)       Microsoft redistributable, unmodified
+  DISK weights             Apache-2.0  https://github.com/cvlab-epfl/disk
+  LightGlue weights        Apache-2.0  https://github.com/cvg/LightGlue
+
+SuperPoint is deliberately not used: its weights carry a non-commercial
+research licence, and the matcher export here is fused with DISK, so the two
+cannot be swapped by accident.
