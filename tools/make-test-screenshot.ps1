@@ -21,15 +21,21 @@
 .PARAMETER OutDir
     Where screenshot.png and scaled.png are written.
 
+.NOTES
+    No asset library ships with the repository, so -Target is required. Point it
+    at any sprite with an alpha channel; the distractors are optional and only
+    make the frame harder. Keep the same arguments between runs, or two results
+    cannot be compared.
+
 .EXAMPLE
-    .\tools\make-test-screenshot.ps1 -OutDir D:\Argus\testdata
+    .\tools\make-test-screenshot.ps1 -Target C:\assets\hero_happy.png `
+        -Distractors C:\assets\hero_angry.png, C:\assets\sidekick.png
 #>
 param(
-    [string]   $Target      = "<path to a sprite with an alpha channel>",
-    [string[]] $Distractors = @(
-        "<path to a sprite with an alpha channel>",
-        "<path to a sprite with an alpha channel>"),
-    [string]   $OutDir      = "D:\Argus\testdata",
+    [Parameter(Mandatory = $true)]
+    [string]   $Target,
+    [string[]] $Distractors = @(),
+    [string]   $OutDir      = (Join-Path $PSScriptRoot "..\testdata"),
     [int]      $Width       = 1280,
     [int]      $Height      = 720,
     [double]   $Scale       = 0.62,
