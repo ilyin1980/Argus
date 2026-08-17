@@ -30,18 +30,32 @@ near-identical variants, grouped and ranked by reclaimable space.
 
 ## Download
 
-Ready-made, self-contained builds are on the
-[releases page](https://github.com/ilyin1980/Argus/releases/latest). Unpack
-anywhere and run — nothing is installed, and the model weights are inside.
+Unpack anywhere and run. Nothing is installed, nothing is read from `PATH`, and
+the model weights are already inside the archive.
 
-| Archive | Platform | Verified on |
-|---|---|---|
-| `Argus-<version>-Windows-AMD64.zip` | Windows 10/11, x64 | DirectML, RTX 3050 Ti |
-| `Argus-<version>-Linux-x86_64.tar.gz` | Linux x86-64, needs system Qt 6.4+ | CUDA, GTX 1050 Ti |
-| `Argus-<version>-macOS-arm64.tar.gz` | macOS, Apple Silicon | CoreML, M1 Pro |
+| Download | Platform | Needs | Verified on |
+|---|---|---|---|
+| [**Windows x64**](https://github.com/ilyin1980/Argus/releases/download/v0.1.0/Argus-0.1.0-Windows-AMD64.zip) · 126 MB | Windows 10/11 | nothing | DirectML, RTX 3050 Ti |
+| [**Linux x86-64**](https://github.com/ilyin1980/Argus/releases/download/v0.1.0/Argus-0.1.0-Linux-x86_64.tar.gz) · 86 MB | glibc, x86-64 | system Qt 6.4+ | CUDA, GTX 1050 Ti |
+| [**macOS Apple Silicon**](https://github.com/ilyin1980/Argus/releases/download/v0.1.0/Argus-0.1.0-macOS-arm64.tar.gz) · 183 MB | macOS on arm64 | nothing | CoreML, M1 Pro |
+
+Those links point at 0.1.0; the
+[releases page](https://github.com/ilyin1980/Argus/releases/latest) always
+carries the newest build and the notes that go with it.
 
 Run `argus doctor` first: it prints which execution providers this machine can
 actually create a session on, which is not the same as which ones are listed.
+
+```bash
+argus doctor
+```
+
+Linux needs Qt from the distribution, because a bundled Qt would have to match
+the system libraries down to the C++ ABI:
+
+```bash
+sudo apt install qt6-base-dev libqt6sql6-sqlite
+```
 
 The macOS bundle is neither signed nor notarised, so the first launch needs
 **right-click → Open**; Gatekeeper otherwise refuses it without offering a way
