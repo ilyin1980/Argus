@@ -38,12 +38,14 @@ anywhere and run — nothing is installed, and the model weights are inside.
 |---|---|---|
 | `Argus-<version>-Windows-AMD64.zip` | Windows 10/11, x64 | DirectML, RTX 3050 Ti |
 | `Argus-<version>-Linux-x86_64.tar.gz` | Linux x86-64, needs system Qt 6.4+ | CUDA, GTX 1050 Ti |
+| `Argus-<version>-macOS-arm64.tar.gz` | macOS, Apple Silicon | CoreML, M1 Pro |
 
 Run `argus doctor` first: it prints which execution providers this machine can
 actually create a session on, which is not the same as which ones are listed.
 
-macOS builds run (verified on an M1 Pro with CoreML) but are not published yet —
-build from source with `tools/build.sh` until they are signed.
+The macOS bundle is neither signed nor notarised, so the first launch needs
+**right-click → Open**; Gatekeeper otherwise refuses it without offering a way
+through.
 
 ## Status
 
