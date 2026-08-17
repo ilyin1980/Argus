@@ -1,0 +1,70 @@
+name: Bug report
+description: Something behaves differently from what the manual says
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A wrong *answer* is as much a bug as a crash. If a search returned
+        nonsense, or a duplicate group grouped things that are not duplicates,
+        that belongs here.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened, and what you expected instead
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: The exact commands, or the exact clicks
+      description: >
+        Paste the command line. If it happened in the GUI, say which tab, and
+        whether a region was selected on the query image — the search behaves
+        differently with and without one.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `argus doctor`
+      description: >
+        This reports the ONNX Runtime and OpenCV versions, the execution
+        providers this machine can see, and whether a session can actually be
+        created on the installed driver. Most reports about "nothing is found"
+        are answered by it.
+      render: shell
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The output of `argus --version`, or the release archive name.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: origin
+    attributes:
+      label: Where the build came from
+      options:
+        - A published release archive
+        - Built from source with tools/build.bat or tools/build.sh
+        - Built from source by hand
+    validations:
+      required: true
+
+  - type: textarea
+    id: images
+    attributes:
+      label: The images involved
+      description: >
+        A screenshot of the query with the region drawn on it, and the asset
+        that should have matched, make almost every search report answerable.
+        Skip this only if the images cannot be shared.

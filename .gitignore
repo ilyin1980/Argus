@@ -27,3 +27,7 @@ testdata/
 # Doxygen output. Generated from the sources; see README "API documentation".
 doc/
 dist/
+
+# Built archives. They are published as release assets, not committed:
+# see .gitattributes for why they are kept out of history and out of LFS.
+packages/

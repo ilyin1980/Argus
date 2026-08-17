@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Questions about using Argus
+    url: https://github.com/ilyin1980/Argus/discussions
+    about: How to index, what a score means, why a search returns what it returns.
+  - name: Security report
+    url: https://github.com/ilyin1980/Argus/security/advisories/new
+    about: Report privately instead of opening a public issue. See SECURITY.md.

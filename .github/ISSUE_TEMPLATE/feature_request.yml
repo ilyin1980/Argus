@@ -1,0 +1,28 @@
+name: Feature request
+description: Something the tool should be able to do and cannot
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: >
+        The task, not the implementation. "Find which atlas a sprite was cut
+        from" is answerable; "add a k-d tree" is a proposal in search of one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: What you do today instead
+      description: Including whether some workaround already gets you most of the way.
+
+  - type: textarea
+    id: scale
+    attributes:
+      label: Scale
+      description: >
+        How many images, how large, and how often. Answers that hold for four
+        thousand assets stop holding at four million, and this decides whether a
+        request is a small change or a different design.

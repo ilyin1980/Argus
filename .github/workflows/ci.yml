@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# A second push to the same branch cancels the run still in flight: the older
+# answer is never the one anybody wants.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux:
+    name: Linux, no inference backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ONNX Runtime, OpenCV and the model weights are fetched, not vendored,
+      # and a hosted runner has no GPU to exercise them on. What CI protects is
+      # everything that compiles without them: scanning, hashing, the SQLite
+      # index, the duplicate finder, the Git-branch reader and the whole GUI.
+      - name: Install Qt and the build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential ninja-build cmake \
+            qt6-base-dev libqt6sql6-sqlite qt6-l10n-tools
+
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DARGUS_WITH_INFERENCE=OFF
+          -DARGUS_BUILD_CLI=ON
+          -DARGUS_BUILD_GUI=ON
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      # A binary that links but cannot start is the failure mode this catches;
+      # `formats` needs no index, no models and no display.
+      - name: Run the CLI
+        run: |
+          ./build/bin/argus formats
+          ./build/bin/argus --help

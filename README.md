@@ -4,6 +4,15 @@
 
 # Argus
 
+<p align="center">
+  <a href="https://github.com/ilyin1980/Argus/actions/workflows/ci.yml"><img src="https://github.com/ilyin1980/Argus/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/ilyin1980/Argus/releases/latest"><img src="https://img.shields.io/github/v/release/ilyin1980/Argus?include_prereleases&sort=semver" alt="Latest release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-Apache--2.0-blue" alt="Licence: Apache-2.0"></a>
+  <img src="https://img.shields.io/badge/C%2B%2B-20-blue" alt="C++20">
+  <img src="https://img.shields.io/badge/Qt-6.4%2B-41cd52" alt="Qt 6.4+">
+  <img src="https://img.shields.io/badge/platforms-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platforms">
+</p>
+
 > Argus Panoptes, the hundred-eyed giant of the myth: half his eyes stayed open
 > while the rest slept, so nothing ever passed him unseen. That is the job —
 > watch a whole asset library at once and say where a picture came from.
@@ -19,19 +28,42 @@ where. Survives rescaling, background clutter, colour tinting and compression.
 **Find duplicates in a folder** — the secondary job. Byte-identical copies and
 near-identical variants, grouped and ranked by reclaimable space.
 
+## Download
+
+Ready-made, self-contained builds are on the
+[releases page](https://github.com/ilyin1980/Argus/releases/latest). Unpack
+anywhere and run — nothing is installed, and the model weights are inside.
+
+| Archive | Platform | Verified on |
+|---|---|---|
+| `Argus-<version>-Windows-AMD64.zip` | Windows 10/11, x64 | DirectML, RTX 3050 Ti |
+| `Argus-<version>-Linux-x86_64.tar.gz` | Linux x86-64, needs system Qt 6.4+ | CUDA, GTX 1050 Ti |
+
+Run `argus doctor` first: it prints which execution providers this machine can
+actually create a session on, which is not the same as which ones are listed.
+
+macOS builds run (verified on an M1 Pro with CoreML) but are not published yet —
+build from source with `tools/build.sh` until they are signed.
+
 ## Status
 
 | Stage | State |
 |---|---|
 | Scanning, hashing, SQLite index, duplicate grouping | done |
 | Qt GUI: thumbnail grid, clipboard paste, drag-to-select region | done |
-| Neural local features (DISK) at index time | done |
+| Neural local features (DISK) at index time, large textures indexed in tiles | done |
 | Bag-of-words shortlist + LightGlue matching + RANSAC verification | done |
-| GUI wiring for the search, masked template matching for flat UI art | to do |
+| GUI wiring for the search, parallel matching, cached sessions | done |
+| Masked template matching, a second channel for flat UI art | done |
+| DirectML, CUDA and CoreML backends, each run on real hardware | done |
+| Indexing images out of other git branches, Git LFS included | done |
+| Four themes, 13 interface languages, translated manual | done |
+| Self-contained packages for Windows, Linux and macOS | done |
 | HTTP worker mode for a remote Linux box | deferred |
 
-Measured on a 4665-image Unity asset library: indexing 196 s, one search 12.5 s
-(the search is the current bottleneck — see *Known limits*).
+Measured on a 4665-image Unity asset library: indexing about six minutes at the
+shipped defaults, one search seconds rather than milliseconds — see
+*Known limits*.
 
 ## Building
 
@@ -188,15 +220,23 @@ and no runtime installed. That is verified by running the packaged binaries with
 ### macOS and Linux
 
 The CMake rules are cross-platform and `macdeployqt` is picked up the same way
-`windeployqt` is. Two things still need doing before either produces a working
-package:
+`windeployqt` is. Both packages have been built and run on real hardware.
 
-- **No DirectML outside Windows.** `FeatureExtractor::create` and
-  `FeatureMatcher::create` need a CoreML branch on macOS and a CUDA branch on
-  Linux, both falling back to the CPU provider.
-- **The fp16 matcher does not run on CPU** — ONNX Runtime has no CPU kernel for
-  its packed-QKV attention. A CPU fallback must load
-  `disk_lightglue_fused_cpu.onnx`, which is why that model is in the package.
+Two things that platform work settled, and that the packages depend on:
+
+- **The accelerator is chosen per platform** — DirectML on Windows, CUDA on
+  Linux, CoreML on macOS, each falling back to the CPU provider quietly. The
+  choice lives in one place, `core/OnnxProvider.cpp`.
+- **The matcher model is chosen by measurement, not by rule of thumb.** The
+  fp16 export is faster only on DirectML. On CUDA the full-precision export is
+  almost four times faster, on CoreML the fp16 one returns zero matches without
+  raising an error, and on CPU it does not run at all — ONNX Runtime has no CPU
+  kernel for its packed-QKV attention. `preferredMatcherModel()` picks; both
+  models are therefore in every package.
+
+The Linux archive deliberately does not bundle Qt: a bundled Qt would have to
+match the distribution's own libraries down to the C++ ABI. Install
+`qt6-base-dev` and `libqt6sql6-sqlite` (or the equivalent) first.
 
 ## Third-party layout
 
@@ -235,9 +275,14 @@ inliers at 89% while the true source produced 123 at 98%.
 
 ## Known limits
 
-- **A search takes ~12 s** against 4500 assets: 200 candidates at ~60 ms of
-  LightGlue each. The shortlist cannot simply be shrunk — the correct answer is
-  not near the top of the bag-of-words ranking.
+- **A search costs seconds, not milliseconds** — on the order of 18 s against
+  4500 assets at the shipped defaults, most of it LightGlue over the shortlist.
+  The shortlist cannot simply be shrunk on a whole frame: the correct answer is
+  not near the top of the bag-of-words ranking, so cutting the list drops it
+  silently. **Drawing a box around the object is both the speed-up and the
+  accuracy fix** — a cropped query spends its whole keypoint budget on the
+  object instead of the background, which is why the GUI shortens the shortlist
+  by itself once a region is selected.
 - **Different artwork of the same character verifies too.** Ranking separates it
   reliably, a yes/no threshold does not, which is why results are a ranked list.
 - **Perceptual hashing (`dupes`, `query`) answers "is this the same picture"**,
@@ -245,6 +290,24 @@ inliers at 89% while the true source produced 123 at 98%.
   groups together at any usable radius.
 - Near-duplicate groups mean *review these*, not *delete these*. Only exact
   groups are safe to act on automatically.
+
+## Documentation
+
+The manuals ship inside the binary — **F1** in the GUI, `Help → Command line and
+automation` for the scripting side — and their sources are in the repository:
+
+| Document | Source |
+|---|---|
+| Using Argus, from indexing to reading the results | [`src/gui/help/user-guide.md`](src/gui/help/user-guide.md) |
+| Command line and automation | [`src/gui/help/cli-reference.md`](src/gui/help/cli-reference.md) |
+| How the pieces fit together, front page of the API reference | [`docs/mainpage.md`](docs/mainpage.md) |
+| Working on the project | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| What changed and when | [`CHANGELOG.md`](CHANGELOG.md) |
+
+Both manuals exist in all 13 interface languages beside the English ones
+(`user-guide.uk.md`, `cli-reference.ja.md`, and so on). The interface itself
+switches language at runtime under **View → Language**; adding one is described
+in `CONTRIBUTING.md`.
 
 ## API documentation
 
@@ -277,3 +340,19 @@ how the pieces fit together.
   would churn the page cache for nothing.
 - Degenerate hash buckets are skipped above `--bucket-limit` and the count is
   reported, never silently dropped.
+
+## Licence
+
+Apache-2.0 — see [`LICENSE`](LICENSE).
+
+The third-party components that ship inside a release archive, and the terms
+each one carries, are listed in [`NOTICE`](NOTICE): Qt under LGPL-3.0 and
+dynamically linked so it can be replaced, OpenCV and the DISK and LightGlue
+weights under Apache-2.0, ONNX Runtime under MIT, DirectML as a Microsoft
+redistributable.
+
+SuperPoint would be the obvious alternative feature extractor and is
+deliberately absent: its weights are licensed for non-commercial research only.
+Because the matcher export here is fused with DISK, the two cannot be swapped
+by accident — the licence position follows from a technical decision rather
+than from a promise to be careful.
