@@ -1,8 +1,13 @@
 blank_issues_enabled: true
 contact_links:
-  - name: Questions about using Argus
-    url: https://github.com/ilyin1980/Argus/discussions
-    about: How to index, what a score means, why a search returns what it returns.
+  - name: How to use Argus
+    url: https://github.com/ilyin1980/Argus/blob/main/src/gui/help/user-guide.md
+    about: >-
+      Indexing, selecting a region, what a score means and why a search returns
+      what it returns. The same manual is in the application under F1.
+  - name: Command line and automation
+    url: https://github.com/ilyin1980/Argus/blob/main/src/gui/help/cli-reference.md
+    about: Every command, the output contract and the exit codes.
   - name: Security report
     url: https://github.com/ilyin1980/Argus/security/advisories/new
     about: Report privately instead of opening a public issue. See SECURITY.md.
